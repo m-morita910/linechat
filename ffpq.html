@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FFPQ 性格診断テスト</title>
+  <style>
+    :root {
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --primary: #4f46e5;
+      --primary-light: #ede9fe;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --em: #f59e0b;
+      --ex: #3b82f6;
+      --a:  #10b981;
+      --c:  #8b5cf6;
+      --p:  #ec4899;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── Start ── */
+    .start-wrap {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    .logo {
+      text-align: center;
+      padding: 36px 0 28px;
+    }
+    .logo h1 {
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: var(--primary);
+      letter-spacing: -1px;
+    }
+    .logo .subtitle {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-top: 6px;
+    }
+
+    .info-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px 22px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      margin-bottom: 14px;
+    }
+    .info-card h2 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+    .info-card p, .info-card ul {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.85;
+    }
+    .info-card ul { padding-left: 18px; }
+
+    .scale-demo {
+      display: flex;
+      gap: 6px;
+      margin-top: 12px;
+    }
+    .scale-item {
+      flex: 1;
+      text-align: center;
+      background: var(--primary-light);
+      border-radius: 10px;
+      padding: 8px 4px;
+      font-size: 0.7rem;
+      color: var(--primary);
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .scale-item .num {
+      display: block;
+      font-size: 1.15rem;
+      font-weight: 900;
+    }
+
+    .factor-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .factor-chip {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .btn-start {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      font-family: inherit;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn-start:hover { background: #4338ca; }
+    .btn-start:active { transform: scale(0.98); }
+
+    /* ── Quiz ── */
+    .quiz-wrap {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 16px 16px 32px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .progress-bar-wrap { margin-bottom: 18px; }
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .progress-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .question-card {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 28px 22px 24px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .question-num {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .question-text {
+      font-size: 1.15rem;
+      font-weight: 600;
+      line-height: 1.65;
+      flex: 1;
+      margin-bottom: 28px;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+    .option-btn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 13px 16px;
+      background: #f9fafb;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.92rem;
+      font-family: inherit;
+      color: var(--text);
+      text-align: left;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .option-btn .opt-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--border);
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s;
+    }
+    .option-btn:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    .option-btn:hover .opt-num {
+      background: var(--primary);
+      color: white;
+    }
+    .option-btn.selected {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    .option-btn.selected .opt-num {
+      background: var(--primary);
+      color: white;
+    }
+
+    .nav-btns {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .btn-prev {
+      flex: 0 0 auto;
+      padding: 14px 18px;
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      font-family: inherit;
+      color: var(--muted);
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-prev:hover:not(:disabled) {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .btn-prev:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .btn-next {
+      flex: 1;
+      padding: 14px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .btn-next:hover:not(:disabled) { background: #4338ca; }
+    .btn-next:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+    /* ── Results ── */
+    .result-wrap {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    .result-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .result-header h2 {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .result-header p { color: var(--muted); font-size: 0.88rem; }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+    .legend-line {
+      width: 14px;
+      height: 3px;
+      background: #9ca3af;
+      border-radius: 2px;
+    }
+
+    .factor-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px 20px 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.07);
+    }
+
+    .factor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .factor-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .factor-badge {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+    .factor-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+    .factor-score-block { text-align: right; }
+    .factor-score {
+      font-size: 1.9rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .factor-max { font-size: 0.75rem; color: var(--muted); }
+
+    .factor-desc {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .bar-wrap { margin-bottom: 6px; }
+    .bar-bg {
+      height: 12px;
+      background: #f3f4f6;
+      border-radius: 6px;
+      overflow: visible;
+      position: relative;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.9s ease;
+      position: relative;
+      z-index: 1;
+    }
+    .bar-avg-marker {
+      position: absolute;
+      top: -5px;
+      bottom: -5px;
+      width: 3px;
+      background: #9ca3af;
+      border-radius: 2px;
+      z-index: 2;
+    }
+    .bar-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: #9ca3af;
+      margin-top: 3px;
+    }
+
+    .avg-note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .sub-factors {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .sub-item {
+      background: #f9fafb;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .sub-name { font-size: 0.72rem; color: var(--muted); margin-bottom: 2px; }
+    .sub-score { font-size: 1.05rem; font-weight: 800; }
+    .sub-denom { font-size: 0.65rem; color: #9ca3af; font-weight: 500; }
+    .sub-bar {
+      height: 4px;
+      background: #e5e7eb;
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 5px;
+    }
+    .sub-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.9s ease;
+    }
+
+    .btn-retry {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      background: white;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      margin-top: 24px;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .btn-retry:hover { background: var(--primary-light); }
+
+    /* unanswered warning */
+    .warn-banner {
+      background: #fef3c7;
+      color: #92400e;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      margin-bottom: 12px;
+      display: none;
+    }
+    .warn-banner.show { display: block; }
+  </style>
+</head>
+<body>
+
+<!-- ════ START ════ -->
+<div id="screen-start" class="screen active">
+  <div class="start-wrap">
+    <div class="logo">
+      <h1>FFPQ</h1>
+      <p class="subtitle">自分の性格をクリアに知るための50問診断</p>
+    </div>
+
+    <div class="info-card">
+      <h2>テストについて</h2>
+      <p><strong>50問</strong> の質問に正直に答えてください。直感で答えるのがコツです。所要時間は約 <strong>5〜10分</strong> です。</p>
+    </div>
+
+    <div class="info-card">
+      <h2>回答の仕方</h2>
+      <p>各質問を読んで、自分にどの程度あてはまるか5段階で選んでください。</p>
+      <div class="scale-demo">
+        <div class="scale-item"><span class="num">1</span>全くちがう</div>
+        <div class="scale-item"><span class="num">2</span>ちがう</div>
+        <div class="scale-item"><span class="num">3</span>どちらとも</div>
+        <div class="scale-item"><span class="num">4</span>そうだ</div>
+        <div class="scale-item"><span class="num">5</span>全くそうだ</div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h2>測定する5つの性格特性</h2>
+      <div class="factor-chips">
+        <span class="factor-chip" style="background:#dbeafe;color:#1d4ed8">外向性（Ex）社交的か控えめか</span>
+        <span class="factor-chip" style="background:#d1fae5;color:#065f46">愛着性（A）温情的かクールか</span>
+        <span class="factor-chip" style="background:#ede9fe;color:#5b21b6">統制性（C）几帳面か大まかか</span>
+        <span class="factor-chip" style="background:#fef3c7;color:#92400e">情動性（Em）感情的か穏やかか</span>
+        <span class="factor-chip" style="background:#fce7f3;color:#9d174d">遊戯性（P）創造的か現実的か</span>
+      </div>
+    </div>
+
+    <button class="btn-start" onclick="startQuiz()">診断を開始する →</button>
+  </div>
+</div>
+
+<!-- ════ QUIZ ════ -->
+<div id="screen-quiz" class="screen">
+  <div class="quiz-wrap">
+    <div class="progress-bar-wrap">
+      <div class="progress-info">
+        <span id="prog-text">1 / 50</span>
+        <span id="prog-pct">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="prog-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="question-card">
+      <div class="question-num" id="q-num">質問 1</div>
+      <div class="question-text" id="q-text"></div>
+
+      <div class="options" id="options">
+        <button class="option-btn" onclick="selectOpt(1)">
+          <span class="opt-num">1</span>全くちがう
+        </button>
+        <button class="option-btn" onclick="selectOpt(2)">
+          <span class="opt-num">2</span>ちがう
+        </button>
+        <button class="option-btn" onclick="selectOpt(3)">
+          <span class="opt-num">3</span>どちらともいえない
+        </button>
+        <button class="option-btn" onclick="selectOpt(4)">
+          <span class="opt-num">4</span>そうだ
+        </button>
+        <button class="option-btn" onclick="selectOpt(5)">
+          <span class="opt-num">5</span>全くそうだ
+        </button>
+      </div>
+    </div>
+
+    <div class="nav-btns">
+      <button class="btn-prev" id="btn-prev" onclick="prevQ()">← 前へ</button>
+      <button class="btn-next" id="btn-next" onclick="nextQ()" disabled>次へ →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ RESULTS ════ -->
+<div id="screen-result" class="screen">
+  <div class="result-wrap">
+    <div class="result-header">
+      <h2>診断結果</h2>
+      <p>あなたの5つの性格特性スコアです</p>
+    </div>
+
+    <div class="warn-banner" id="warn-banner">
+      未回答の質問があります。すべて回答してから結果を表示することをおすすめします。
+    </div>
+
+    <div class="legend">
+      <div class="legend-line"></div>
+      <span>縦線は日本人の平均値</span>
+    </div>
+
+    <div id="results-container"></div>
+
+    <button class="btn-retry" onclick="retryQuiz()">もう一度診断する</button>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  { id:  1, text: "憂鬱になりやすい",                                         factor: "Em", sub: 3, rev: false },
+  { id:  2, text: "自分がみじめな人間に思える",                               factor: "Em", sub: 4, rev: false },
+  { id:  3, text: "ものごとがうまく行かないのではないかと、よく心配する",     factor: "Em", sub: 1, rev: false },
+  { id:  4, text: "小さなことにはくよくよしない",                             factor: "Em", sub: 1, rev: true  },
+  { id:  5, text: "見捨てられた感じがする",                                   factor: "Em", sub: 3, rev: false },
+  { id:  6, text: "自分には全然価値がないように思えることがある",             factor: "Em", sub: 4, rev: false },
+  { id:  7, text: "陽気になったり陰気になったり、気分が変りやすい",           factor: "Em", sub: 5, rev: false },
+  { id:  8, text: "よく緊張する",                                             factor: "Em", sub: 2, rev: false },
+  { id:  9, text: "明るいときと暗いときの気分の差が大きい",                   factor: "Em", sub: 5, rev: false },
+  { id: 10, text: "緊張してふるえるようなことはない",                         factor: "Em", sub: 2, rev: true  },
+  { id: 11, text: "大勢でわいわい騒ぐのが好きである",                         factor: "Ex", sub: 3, rev: false },
+  { id: 12, text: "地味で目立つことはない",                                   factor: "Ex", sub: 5, rev: true  },
+  { id: 13, text: "にぎやかな所が好きである",                                 factor: "Ex", sub: 4, rev: false },
+  { id: 14, text: "大勢の人の中にいるのが好きである",                         factor: "Ex", sub: 3, rev: false },
+  { id: 15, text: "もの静かである",                                           factor: "Ex", sub: 1, rev: true  },
+  { id: 16, text: "人の上に立つことが多い",                                   factor: "Ex", sub: 2, rev: false },
+  { id: 17, text: "人に指示を与えるような立場に立つことが多い",               factor: "Ex", sub: 2, rev: false },
+  { id: 18, text: "じっとしているのが嫌いである",                             factor: "Ex", sub: 1, rev: false },
+  { id: 19, text: "人から注目されるとうれしい",                               factor: "Ex", sub: 5, rev: false },
+  { id: 20, text: "スポーツ観戦で我を忘れて応援することがある",               factor: "Ex", sub: 4, rev: false },
+  { id: 21, text: "あまりきっちりした人間ではない",                           factor: "C",  sub: 1, rev: true  },
+  { id: 22, text: "仕事を投げやりにしてしまうことがある",                     factor: "C",  sub: 3, rev: true  },
+  { id: 23, text: "よく考えてから行動する",                                   factor: "C",  sub: 5, rev: false },
+  { id: 24, text: "仕事は計画的にするようにしている",                         factor: "C",  sub: 5, rev: false },
+  { id: 25, text: "責任感が乏しいといわれることがある",                       factor: "C",  sub: 3, rev: true  },
+  { id: 26, text: "まじめな努力家である",                                     factor: "C",  sub: 2, rev: false },
+  { id: 27, text: "根気が続かないほうである",                                 factor: "C",  sub: 2, rev: true  },
+  { id: 28, text: "几帳面である",                                             factor: "C",  sub: 1, rev: false },
+  { id: 29, text: "しんどいことはやりたくない",                               factor: "C",  sub: 4, rev: true  },
+  { id: 30, text: "欲望のままに行動してしまうようなことは、ほとんどない",     factor: "C",  sub: 4, rev: false },
+  { id: 31, text: "誰に対しても優しく親切にふるまうようにしている",           factor: "A",  sub: 5, rev: false },
+  { id: 32, text: "人には暖かく友好的に接している",                           factor: "A",  sub: 1, rev: false },
+  { id: 33, text: "人の気持ちを積極的に理解しようとは思わない",               factor: "A",  sub: 4, rev: true  },
+  { id: 34, text: "あまり親切な人間ではない",                                 factor: "A",  sub: 1, rev: true  },
+  { id: 35, text: "人情深いほうだと思う",                                     factor: "A",  sub: 2, rev: false },
+  { id: 36, text: "人のよろこびを自分のことのように喜べる",                   factor: "A",  sub: 4, rev: false },
+  { id: 37, text: "どうしても好きになれない人がたくさんいる",                 factor: "A",  sub: 3, rev: true  },
+  { id: 38, text: "出会った人はたいがい好きになる",                           factor: "A",  sub: 3, rev: false },
+  { id: 39, text: "気配りをするほうである",                                   factor: "A",  sub: 2, rev: false },
+  { id: 40, text: "人を馬鹿にしているといわれることがある",                   factor: "A",  sub: 5, rev: true  },
+  { id: 41, text: "芸術作品に接すると鳥肌がたち興奮をおぼえることがある",     factor: "P",  sub: 3, rev: false },
+  { id: 42, text: "美や芸術にはあまり関心がない",                             factor: "P",  sub: 3, rev: true  },
+  { id: 43, text: "考えることは面白い",                                       factor: "P",  sub: 1, rev: false },
+  { id: 44, text: "イメージがあふれ出てくる",                                 factor: "P",  sub: 2, rev: false },
+  { id: 45, text: "自分の感じたことを大切にする",                             factor: "P",  sub: 4, rev: false },
+  { id: 46, text: "変わった人だとよくいわれる",                               factor: "P",  sub: 5, rev: false },
+  { id: 47, text: "空想の世界をさまようことはほとんどない",                   factor: "P",  sub: 2, rev: true  },
+  { id: 48, text: "好奇心が強い",                                             factor: "P",  sub: 1, rev: false },
+  { id: 49, text: "感情豊かな人間である",                                     factor: "P",  sub: 4, rev: false },
+  { id: 50, text: "別世界に行ってみたい",                                     factor: "P",  sub: 5, rev: false },
+];
+
+const FACTORS = {
+  Ex: { name: "外向性", color: "#3b82f6", avg: 31,
+        desc: "社交的で積極的か、静かで控えめか。高いほど社交的で明るく、低いほど謙虚で物静か。" },
+  A:  { name: "愛着性", color: "#10b981", avg: 32,
+        desc: "温情的で友好的か、冷静でクールか。高いほど友好的で人当たりがよく、低いほど冷静。" },
+  C:  { name: "統制性", color: "#8b5cf6", avg: 29,
+        desc: "計画的で几帳面か、大まかで柔軟か。高いほど責任感が強く、低いほど細かいことにこだわらない。" },
+  Em: { name: "情動性", color: "#f59e0b", avg: 35,
+        desc: "感情的で心配性か、大らかで穏やかか。高いほど緊張しやすく、低いほどのんびり屋。" },
+  P:  { name: "遊戯性", color: "#ec4899", avg: 35,
+        desc: "創造的で好奇心旺盛か、堅実で現実的か。高いほど遊び心があり、低いほど保守的。" },
+};
+
+const SUB_NAMES = {
+  Ex1: "活動",       Ex2: "支配",   Ex3: "群居",      Ex4: "興奮追求", Ex5: "注意獲得",
+  A1:  "温厚",       A2:  "協調",   A3:  "信頼",       A4:  "共感",     A5:  "他者尊重",
+  C1:  "几帳面",     C2:  "執着",   C3:  "責任感",     C4:  "自己統制", C5:  "計画",
+  Em1: "心配性",     Em2: "緊張",   Em3: "抑うつ",     Em4: "自己批判", Em5: "気分変動",
+  P1:  "進取",       P2:  "空想",   P3:  "芸術への関心", P4: "内的経験",  P5:  "奔放",
+};
+
+let currentQ = 0;
+let answers  = new Array(50).fill(null);
+
+function startQuiz() {
+  currentQ = 0;
+  answers  = new Array(50).fill(null);
+  showScreen('quiz');
+  renderQ();
+}
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function renderQ() {
+  const q     = QUESTIONS[currentQ];
+  const total = QUESTIONS.length;
+
+  document.getElementById('q-num').textContent  = '質問 ' + q.id;
+  document.getElementById('q-text').textContent = q.text;
+
+  const answered = currentQ + 1;
+  const pct = Math.round(((answered - 1) / total) * 100);
+  document.getElementById('prog-text').textContent = answered + ' / ' + total;
+  document.getElementById('prog-pct').textContent  = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+
+  document.querySelectorAll('.option-btn').forEach((btn, i) => {
+    btn.classList.toggle('selected', answers[currentQ] === i + 1);
+  });
+
+  document.getElementById('btn-prev').disabled = (currentQ === 0);
+
+  const nextBtn = document.getElementById('btn-next');
+  const isLast  = (currentQ === total - 1);
+  nextBtn.textContent = isLast ? '結果を見る →' : '次へ →';
+  nextBtn.disabled    = (answers[currentQ] === null);
+}
+
+function selectOpt(val) {
+  answers[currentQ] = val;
+  renderQ();
+}
+
+function nextQ() {
+  if (answers[currentQ] === null) return;
+  if (currentQ === QUESTIONS.length - 1) { showResults(); return; }
+  currentQ++;
+  renderQ();
+}
+
+function prevQ() {
+  if (currentQ === 0) return;
+  currentQ--;
+  renderQ();
+}
+
+function calcScores() {
+  const fScores = { Ex: 0, A: 0, C: 0, Em: 0, P: 0 };
+  const sScores = {};
+
+  QUESTIONS.forEach((q, i) => {
+    const raw = answers[i] ?? 3;
+    const s   = q.rev ? (6 - raw) : raw;
+
+    fScores[q.factor] += s;
+
+    const key = q.factor + q.sub;
+    sScores[key] = (sScores[key] || 0) + s;
+  });
+
+  return { fScores, sScores };
+}
+
+function showResults() {
+  const unanswered = answers.filter(a => a === null).length;
+  document.getElementById('warn-banner').classList.toggle('show', unanswered > 0);
+
+  const { fScores, sScores } = calcScores();
+  const container = document.getElementById('results-container');
+  container.innerHTML = '';
+
+  ['Ex', 'A', 'C', 'Em', 'P'].forEach(key => {
+    const f    = FACTORS[key];
+    const score = fScores[key];
+    const pct   = ((score - 10) / 40) * 100;
+    const avgPct = ((f.avg - 10) / 40) * 100;
+
+    const subHTML = [1, 2, 3, 4, 5].map(n => {
+      const sk   = key + n;
+      const ss   = sScores[sk] || 0;
+      const sPct = Math.max(0, Math.min(100, ((ss - 2) / 8) * 100));
+      return `
+        <div class="sub-item">
+          <div class="sub-name">${SUB_NAMES[sk]}</div>
+          <div class="sub-score" style="color:${f.color}">${ss}<span class="sub-denom"> / 10</span></div>
+          <div class="sub-bar">
+            <div class="sub-bar-fill" style="width:${sPct}%;background:${f.color}"></div>
+          </div>
+        </div>`;
+    }).join('');
+
+    const card = document.createElement('div');
+    card.className = 'factor-card';
+    card.innerHTML = `
+      <div class="factor-header">
+        <div class="factor-title">
+          <span class="factor-badge" style="background:${f.color}22;color:${f.color}">${key}</span>
+          <span class="factor-name">${f.name}</span>
+        </div>
+        <div class="factor-score-block">
+          <div class="factor-score" style="color:${f.color}">${score}</div>
+          <div class="factor-max">/ 50点</div>
+        </div>
+      </div>
+      <div class="factor-desc">${f.desc}</div>
+      <div class="avg-note">日本人の平均：${f.avg}点</div>
+      <div class="bar-wrap">
+        <div class="bar-bg">
+          <div class="bar-fill" style="width:${Math.max(0,Math.min(100,pct))}%;background:${f.color}"></div>
+          <div class="bar-avg-marker" style="left:${avgPct}%"></div>
+        </div>
+        <div class="bar-labels"><span>10</span><span>30</span><span>50</span></div>
+      </div>
+      <div class="sub-factors">${subHTML}</div>`;
+    container.appendChild(card);
+  });
+
+  showScreen('result');
+}
+
+function retryQuiz() {
+  startQuiz();
+}
+</script>
+</body>
+</html>
