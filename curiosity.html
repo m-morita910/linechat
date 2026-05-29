@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>好奇心タイプ診断</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --primary: #6d28d9;
+      --primary-light: #ede9fe;
+      --primary-dark: #4c1d95;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --c1: #2563eb;
+      --c2: #059669;
+      --c3: #d97706;
+      --c4: #dc2626;
+      --c5: #7c3aed;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    #progress-bar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 4px;
+      background: var(--primary);
+      transition: width .3s ease;
+      z-index: 100;
+    }
+    .screen { display: none; padding: 24px 16px 48px; max-width: 640px; margin: 0 auto; }
+    .screen.active { display: block; }
+    #cover {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      padding: 32px 20px;
+    }
+    #cover.active { display: flex; }
+    .cover-icon { font-size: 3.5rem; margin-bottom: 16px; }
+    #cover h1 { font-size: 1.7rem; font-weight: 800; margin-bottom: 8px; color: var(--primary-dark); }
+    #cover .tagline { color: var(--muted); font-size: 0.95rem; margin-bottom: 32px; max-width: 340px; }
+    .type-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+    .type-badge {
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .btn-start {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 16px 48px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(109,40,217,.3);
+      transition: transform .1s, box-shadow .1s;
+    }
+    .btn-start:active { transform: scale(.97); box-shadow: 0 2px 10px rgba(109,40,217,.2); }
+    .note { font-size: 0.78rem; color: var(--muted); margin-top: 12px; }
+    #quiz { padding-top: 32px; }
+    .quiz-header { text-align: center; margin-bottom: 24px; }
+    .quiz-header .q-count { font-size: 0.85rem; color: var(--muted); margin-bottom: 4px; }
+    .quiz-header h2 { font-size: 1.15rem; font-weight: 700; }
+    .question-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px 18px 18px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      margin-bottom: 14px;
+    }
+    .q-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .q-num {
+      min-width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .q-text { font-size: 0.97rem; font-weight: 500; }
+    .scale {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+    }
+    .scale-btn {
+      flex: 1;
+      height: 42px;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      background: #fff;
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .scale-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .scale-btn.selected {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+    .scale-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      padding: 0 2px;
+    }
+    .scale-labels span { font-size: 0.68rem; color: var(--muted); }
+    .btn-submit {
+      width: 100%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      box-shadow: 0 4px 16px rgba(109,40,217,.25);
+      transition: opacity .2s, transform .1s;
+    }
+    .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-submit:not(:disabled):active { transform: scale(.98); }
+    .unanswered-msg {
+      text-align: center;
+      color: #dc2626;
+      font-size: 0.85rem;
+      margin-top: 8px;
+      display: none;
+    }
+    #result { padding-top: 28px; }
+    .result-header { text-align: center; margin-bottom: 28px; }
+    .result-header .emoji { font-size: 2.5rem; }
+    .result-header h2 { font-size: 1.4rem; font-weight: 800; margin: 8px 0 4px; }
+    .result-header p { color: var(--muted); font-size: 0.9rem; }
+    .type-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+    .type-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .type-name-wrap { display: flex; align-items: center; gap: 10px; }
+    .type-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .type-name { font-weight: 700; font-size: 1.02rem; }
+    .strength-badge {
+      padding: 3px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .strength-weak   { background: #9ca3af; }
+    .strength-normal { background: #f59e0b; }
+    .strength-strong { background: #10b981; }
+    .bar-wrap {
+      height: 10px;
+      background: var(--bg);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 1s cubic-bezier(.25,.8,.25,1);
+    }
+    .type-score-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .type-score { font-size: 1.3rem; font-weight: 800; }
+    .type-desc { font-size: 0.77rem; color: var(--muted); max-width: 68%; text-align: right; }
+    .top-badge {
+      background: var(--primary-light);
+      border: 2px solid var(--primary);
+      border-radius: 16px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .top-badge .top-label { font-size: 0.8rem; color: var(--primary-dark); font-weight: 600; margin-bottom: 2px; }
+    .top-badge .top-name { font-size: 1.2rem; font-weight: 800; color: var(--primary-dark); }
+    .btn-retry {
+      width: 100%;
+      background: transparent;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: background .15s;
+    }
+    .btn-retry:hover { background: var(--primary-light); }
+    footer { text-align: center; color: var(--muted); font-size: 0.72rem; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar" style="width:0%"></div>
+
+<div id="cover" class="screen active">
+  <div class="cover-icon">🧠</div>
+  <h1>好奇心タイプ診断</h1>
+  <p class="tagline">25の質問に答えて、あなたの好奇心のパターンを発見しましょう</p>
+  <div class="type-list">
+    <span class="type-badge" style="background:var(--c1)">欠落感受性</span>
+    <span class="type-badge" style="background:var(--c2)">喜びの探査</span>
+    <span class="type-badge" style="background:var(--c3)">社会的詮索</span>
+    <span class="type-badge" style="background:var(--c4)">ストレス活用</span>
+    <span class="type-badge" style="background:var(--c5)">スリル探求</span>
+  </div>
+  <button class="btn-start" onclick="showQuiz()">診断スタート</button>
+  <p class="note">所要時間：約3〜5分 ／ 25問</p>
+</div>
+
+<div id="quiz" class="screen">
+  <div class="quiz-header">
+    <div class="q-count" id="q-count">1〜25問</div>
+    <h2>各質問に 1〜7 で点数をつけてください</h2>
+  </div>
+  <div id="questions-wrap"></div>
+  <button class="btn-submit" id="btn-submit" onclick="calcResult()" disabled>結果を見る</button>
+  <p class="unanswered-msg" id="unanswered-msg">すべての質問に回答してください</p>
+  <footer>研究チームが開発した好奇心タイプ判断テストに基づく</footer>
+</div>
+
+<div id="result" class="screen">
+  <div class="result-header">
+    <div class="emoji">✨</div>
+    <h2>あなたの好奇心タイプ</h2>
+    <p>5つのタイプごとのスコアです</p>
+  </div>
+  <div class="top-badge">
+    <div class="top-label">最も強いタイプ</div>
+    <div class="top-name" id="top-type-name">—</div>
+  </div>
+  <div id="type-cards"></div>
+  <button class="btn-retry" onclick="retry()">もう一度診断する</button>
+  <footer>研究チームが開発した好奇心タイプ判断テストに基づく</footer>
+</div>
+
+<script>
+  const QUESTIONS = [
+    "抽象的な問題について何時間でも考えられる",
+    "問題の答えがわからないとイライラする",
+    "解決策が見つかるまであきらめずに努力する",
+    "いったん取り組む必要を感じたら最後までやる",
+    "必要な情報はすべて集めようとする",
+    "難しいシチュエーションは成長のチャンスだと思う",
+    "世界観が覆されるような経験を求めている",
+    "深く考えるような問題が大好きだ",
+    "自分がよく知らないテーマについて調べるのが好きだ",
+    "新しい情報を手に入れると心が踊る",
+    "他人に特有の習慣に興味がある",
+    "他人がなぜそのような行動を取ったかが気になる",
+    "他人がしている会話の内容を集めるのが好きだ",
+    "そばにいる人たちの会話をつい聞いてしまう",
+    "何か騒ぎがあると、ついそちらに意識が向かう",
+    "不安を感じた時は新しい行動はしない",
+    "あいまいな状況を放置するのはストレスだ",
+    "よく知らないような場所には行かない",
+    "確信がある時でないと未知の挑戦はしない",
+    "予期せぬことが起きそうな場面では集中できない",
+    "新たなチャレンジで不安を感じると逆に興奮してしまう",
+    "リスクを取るのが大好きだ",
+    "ヒマな時間にはスリルを味わいたい",
+    "計画を立てて行動するより、ランダムに行動をしたい",
+    "変人と友人になりたい",
+  ];
+
+  const TYPES = [
+    { name: "欠落感受性", qs: [0,1,2,3,4],   color: "var(--c1)", icon: "🔍", reversed: false,
+      desc: "知識の欠落を埋めたいという強い衝動。わからないことへの不快感がモチベーションになる。",
+      thresholds: [3.7, 4.9, 6.0] },
+    { name: "喜びの探査", qs: [5,6,7,8,9],   color: "var(--c2)", icon: "🌱", reversed: false,
+      desc: "新しい情報や経験を探求すること自体が喜び。学びが純粋な楽しさになっている。",
+      thresholds: [4.1, 5.2, 6.3] },
+    { name: "社会的詮索", qs: [10,11,12,13,14], color: "var(--c3)", icon: "👥", reversed: false,
+      desc: "他者の行動・思考・習慣への興味。人間観察やコミュニケーションから刺激を受ける。",
+      thresholds: [3.0, 4.4, 5.8] },
+    { name: "ストレス活用", qs: [15,16,17,18,19], color: "var(--c4)", icon: "⚡", reversed: true,
+      desc: "不確かさやリスクをエネルギーに変える力。高いスコアほど不安を乗り越えられる。",
+      thresholds: [3.1, 4.4, 5.8] },
+    { name: "スリル探求", qs: [20,21,22,23,24], color: "var(--c5)", icon: "🚀", reversed: false,
+      desc: "未知への挑戦や予測不能な状況を楽しむ。興奮と冒険心が好奇心を動かす。",
+      thresholds: [2.6, 3.9, 5.2] },
+  ];
+
+  const answers = new Array(25).fill(null);
+
+  function showQuiz() {
+    document.getElementById('cover').classList.remove('active');
+    document.getElementById('quiz').classList.add('active');
+    renderQuestions();
+    updateProgress();
+  }
+
+  function renderQuestions() {
+    const wrap = document.getElementById('questions-wrap');
+    wrap.innerHTML = '';
+    QUESTIONS.forEach((q, i) => {
+      const card = document.createElement('div');
+      card.className = 'question-card';
+      card.id = 'qcard-' + i;
+      card.innerHTML = `
+        <div class="q-label">
+          <div class="q-num">${i+1}</div>
+          <div class="q-text">${q}</div>
+        </div>
+        <div class="scale" id="scale-${i}">
+          ${[1,2,3,4,5,6,7].map(v =>
+            `<button class="scale-btn" data-q="${i}" data-v="${v}" onclick="selectAnswer(${i},${v})">${v}</button>`
+          ).join('')}
+        </div>
+        <div class="scale-labels">
+          <span>まったく当てはまらない</span>
+          <span>完全に当てはまる</span>
+        </div>
+      `;
+      wrap.appendChild(card);
+    });
+  }
+
+  function selectAnswer(q, v) {
+    answers[q] = v;
+    const scale = document.getElementById('scale-' + q);
+    scale.querySelectorAll('.scale-btn').forEach(btn => {
+      btn.classList.toggle('selected', parseInt(btn.dataset.v) === v);
+    });
+    updateSubmitBtn();
+    updateProgress();
+  }
+
+  function updateSubmitBtn() {
+    const answered = answers.filter(a => a !== null).length;
+    document.getElementById('btn-submit').disabled = answered < 25;
+    document.getElementById('q-count').textContent = `${answered} / 25問 回答済み`;
+  }
+
+  function updateProgress() {
+    const answered = answers.filter(a => a !== null).length;
+    document.getElementById('progress-bar').style.width = (answered / 25 * 100) + '%';
+  }
+
+  function calcResult() {
+    const unanswered = answers.some(a => a === null);
+    if (unanswered) {
+      document.getElementById('unanswered-msg').style.display = 'block';
+      const firstNull = answers.indexOf(null);
+      document.getElementById('qcard-' + firstNull).scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    const scores = TYPES.map(type => {
+      const vals = type.qs.map(qi => {
+        const raw = answers[qi];
+        return type.reversed ? (8 - raw) : raw;
+      });
+      const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+      return avg;
+    });
+
+    showResult(scores);
+  }
+
+  function getStrength(score, thresholds) {
+    const [weak, normal, strong] = thresholds;
+    if (score <= weak)  return { label: '弱い',  cls: 'strength-weak' };
+    if (score >= strong) return { label: '強い',  cls: 'strength-strong' };
+    return { label: '普通', cls: 'strength-normal' };
+  }
+
+  function showResult(scores) {
+    document.getElementById('quiz').classList.remove('active');
+    document.getElementById('result').classList.add('active');
+    document.getElementById('progress-bar').style.width = '100%';
+
+    const maxIdx = scores.indexOf(Math.max(...scores));
+    document.getElementById('top-type-name').textContent =
+      TYPES[maxIdx].icon + ' ' + TYPES[maxIdx].name;
+
+    const cardsWrap = document.getElementById('type-cards');
+    cardsWrap.innerHTML = '';
+
+    TYPES.forEach((type, i) => {
+      const score = scores[i];
+      const strength = getStrength(score, type.thresholds);
+      const barPct = Math.round((score / 7) * 100);
+      const card = document.createElement('div');
+      card.className = 'type-card';
+      card.innerHTML = `
+        <div class="type-head">
+          <div class="type-name-wrap">
+            <div class="type-icon" style="background:${type.color}22;color:${type.color}">${type.icon}</div>
+            <div class="type-name" style="color:${type.color}">${type.name}</div>
+          </div>
+          <span class="strength-badge ${strength.cls}">${strength.label}</span>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar-fill" id="bar-${i}" style="width:0%;background:${type.color}"></div>
+        </div>
+        <div class="type-score-row">
+          <div class="type-score" style="color:${type.color}">${score.toFixed(1)}<span style="font-size:.8rem;font-weight:400;color:var(--muted)"> / 7.0</span></div>
+          <div class="type-desc">${type.desc}</div>
+        </div>
+      `;
+      cardsWrap.appendChild(card);
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          document.getElementById('bar-' + i).style.width = barPct + '%';
+        }, 100 + i * 120);
+      });
+    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function retry() {
+    answers.fill(null);
+    document.getElementById('result').classList.remove('active');
+    document.getElementById('cover').classList.add('active');
+    document.getElementById('progress-bar').style.width = '0%';
+    document.getElementById('questions-wrap').innerHTML = '';
+    document.getElementById('q-count').textContent = '0 / 25問 回答済み';
+    document.getElementById('btn-submit').disabled = true;
+    document.getElementById('unanswered-msg').style.display = 'none';
+    window.scrollTo({ top: 0 });
+  }
+</script>
+</body>
+</html>
