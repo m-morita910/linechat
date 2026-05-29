@@ -143,9 +143,9 @@
         <label for="price">土地価格（総額）</label>
         <div class="input-group">
           <input type="number" id="price" inputmode="decimal" placeholder="0" min="0" step="any">
-          <span class="unit">万円</span>
+          <span class="unit">千円</span>
         </div>
-        <p class="hint">土地全体の価格を万円で入力してください</p>
+        <p class="hint">土地全体の価格を千円で入力してください</p>
       </div>
 
       <div class="field">
@@ -212,7 +212,7 @@
       } else {
         const areaTsubo = areaUnitEl.value === 'tsubo' ? area : area / SQM_PER_TSUBO;
         const tsuboPrice = price / areaTsubo;
-        tsuboPriceEl.innerHTML = format(tsuboPrice) + ' <span class="result-unit">万円 / 坪</span>';
+        tsuboPriceEl.innerHTML = format(tsuboPrice) + ' <span class="result-unit">千円 / 坪</span>';
         tsuboPriceEl.classList.remove('empty');
         areaInfoEl.textContent = '坪換算面積：約 ' + format(areaTsubo) + ' 坪';
 
@@ -223,7 +223,7 @@
           setEmpty(resultEl, '容積率は0より大きい値を入力してください');
         } else {
           const isshu = tsuboPrice / (far / 100);
-          resultEl.innerHTML = format(isshu) + ' <span class="result-unit">万円 / 坪</span>';
+          resultEl.innerHTML = format(isshu) + ' <span class="result-unit">千円 / 坪</span>';
           resultEl.classList.remove('empty');
         }
         return;
