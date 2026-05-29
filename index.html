@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>一種坪単価 計算ツール</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --result-bg: #eff6ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 16px;
+    }
+    .wrap { max-width: 480px; margin: 0 auto; }
+    h1 {
+      font-size: 1.3rem;
+      text-align: center;
+      margin: 16px 0 4px;
+    }
+    .sub {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin: 0 0 20px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+    .field { margin-bottom: 18px; }
+    .field:last-child { margin-bottom: 0; }
+    .input-group {
+      display: flex;
+      align-items: stretch;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: border-color .15s;
+    }
+    .input-group:focus-within { border-color: var(--primary); }
+    .input-group input {
+      flex: 1;
+      border: none;
+      padding: 14px;
+      font-size: 1.1rem;
+      outline: none;
+      width: 100%;
+      text-align: right;
+      background: transparent;
+    }
+    .input-group .unit {
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      background: #f9fafb;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-left: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .hint { font-size: 0.75rem; color: var(--muted); margin: 6px 2px 0; }
+    .result {
+      background: var(--result-bg);
+      border-radius: 14px;
+      padding: 22px 20px;
+      text-align: center;
+    }
+    .result .result-label { font-size: 0.9rem; color: var(--muted); margin-bottom: 6px; }
+    .result .result-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+    .result .result-value.empty { color: var(--muted); font-size: 1.1rem; font-weight: 500; }
+    .result .result-unit { font-size: 1rem; font-weight: 500; }
+    .formula {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--border);
+    }
+    footer { text-align: center; color: var(--muted); font-size: 0.75rem; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>一種坪単価 計算ツール</h1>
+    <p class="sub">土地単価と容積率から一種坪単価を計算します</p>
+
+    <div class="card">
+      <div class="field">
+        <label for="landPrice">土地坪単価</label>
+        <div class="input-group">
+          <input type="number" id="landPrice" inputmode="decimal" placeholder="0" min="0" step="any">
+          <span class="unit">万円 / 坪</span>
+        </div>
+        <p class="hint">1坪あたりの土地価格を入力してください</p>
+      </div>
+
+      <div class="field">
+        <label for="far">容積率</label>
+        <div class="input-group">
+          <input type="number" id="far" inputmode="decimal" placeholder="0" min="0" step="any">
+          <span class="unit">%</span>
+        </div>
+        <p class="hint">例：200%なら「200」と入力</p>
+      </div>
+    </div>
+
+    <div class="result">
+      <div class="result-label">一種坪単価</div>
+      <div class="result-value empty" id="result">数値を入力してください</div>
+      <div class="formula">一種坪単価 ＝ 土地坪単価 ÷ (容積率 ÷ 100)</div>
+    </div>
+
+    <footer>※ 指定容積率を基準とした概算値です</footer>
+  </div>
+
+  <script>
+    const landPriceEl = document.getElementById('landPrice');
+    const farEl = document.getElementById('far');
+    const resultEl = document.getElementById('result');
+
+    function format(num) {
+      // 小数2桁まで、不要な0は除去
+      return num.toLocaleString('ja-JP', { maximumFractionDigits: 2 });
+    }
+
+    function calc() {
+      const landPrice = parseFloat(landPriceEl.value);
+      const far = parseFloat(farEl.value);
+
+      if (isNaN(landPrice) || isNaN(far)) {
+        resultEl.textContent = '数値を入力してください';
+        resultEl.classList.add('empty');
+        return;
+      }
+      if (far <= 0) {
+        resultEl.textContent = '容積率は0より大きい値を入力してください';
+        resultEl.classList.add('empty');
+        return;
+      }
+
+      const result = landPrice / (far / 100);
+      resultEl.innerHTML = format(result) + ' <span class="result-unit">万円 / 坪</span>';
+      resultEl.classList.remove('empty');
+    }
+
+    landPriceEl.addEventListener('input', calc);
+    farEl.addEventListener('input', calc);
+  </script>
+</body>
+</html>
