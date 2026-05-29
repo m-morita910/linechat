@@ -130,7 +130,7 @@
       <div class="field">
         <label for="area">土地面積</label>
         <div class="input-group">
-          <input type="number" id="area" inputmode="decimal" placeholder="0" min="0" step="any">
+          <input type="text" id="area" inputmode="decimal" placeholder="0">
           <select id="areaUnit" aria-label="面積の単位">
             <option value="sqm">㎡</option>
             <option value="tsubo">坪</option>
@@ -142,7 +142,7 @@
       <div class="field">
         <label for="price">土地価格（総額）</label>
         <div class="input-group">
-          <input type="number" id="price" inputmode="decimal" placeholder="0" min="0" step="any">
+          <input type="text" id="price" inputmode="decimal" placeholder="0">
           <span class="unit">千円</span>
         </div>
         <p class="hint">土地全体の価格を千円で入力してください</p>
@@ -192,14 +192,28 @@
       return num.toLocaleString('ja-JP', { maximumFractionDigits: 2 });
     }
 
+    // 入力値を「,」区切りに整形（小数部はそのまま保持）
+    function formatInputWithCommas(el) {
+      const cleaned = el.value.replace(/[^\d.]/g, '');
+      const parts = cleaned.split('.');
+      const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      const decPart = parts.length > 1 ? '.' + parts.slice(1).join('') : '';
+      el.value = intPart + decPart;
+    }
+
+    // 「,」を除いて数値化
+    function parseNum(value) {
+      return parseFloat(String(value).replace(/,/g, ''));
+    }
+
     function setEmpty(el, msg) {
       el.textContent = msg;
       el.classList.add('empty');
     }
 
     function calc() {
-      const area = parseFloat(areaEl.value);
-      const price = parseFloat(priceEl.value);
+      const area = parseNum(areaEl.value);
+      const price = parseNum(priceEl.value);
       const far = parseFloat(farEl.value);
 
       // 坪単価の計算
@@ -233,9 +247,9 @@
       setEmpty(resultEl, '数値を入力してください');
     }
 
-    areaEl.addEventListener('input', calc);
+    areaEl.addEventListener('input', () => { formatInputWithCommas(areaEl); calc(); });
     areaUnitEl.addEventListener('change', calc);
-    priceEl.addEventListener('input', calc);
+    priceEl.addEventListener('input', () => { formatInputWithCommas(priceEl); calc(); });
     farEl.addEventListener('input', calc);
   </script>
 </body>
