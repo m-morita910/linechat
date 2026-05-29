@@ -14,6 +14,8 @@
       --muted: #6b7280;
       --border: #e5e7eb;
       --result-bg: #eff6ff;
+      --result-bg2: #f0fdf4;
+      --green-dark: #15803d;
     }
     * { box-sizing: border-box; }
     body {
@@ -80,28 +82,41 @@
       border-left: 1px solid var(--border);
       white-space: nowrap;
     }
+    .input-group select {
+      border: none;
+      border-left: 1px solid var(--border);
+      background: #f9fafb;
+      color: var(--text);
+      font-size: 0.95rem;
+      padding: 0 10px;
+      outline: none;
+      cursor: pointer;
+    }
     .hint { font-size: 0.75rem; color: var(--muted); margin: 6px 2px 0; }
     .result {
       background: var(--result-bg);
       border-radius: 14px;
-      padding: 22px 20px;
+      padding: 18px 20px;
       text-align: center;
+      margin-bottom: 12px;
     }
-    .result .result-label { font-size: 0.9rem; color: var(--muted); margin-bottom: 6px; }
+    .result.main { background: var(--result-bg2); }
+    .result .result-label { font-size: 0.9rem; color: var(--muted); margin-bottom: 4px; }
     .result .result-value {
-      font-size: 2rem;
+      font-size: 1.7rem;
       font-weight: 700;
       color: var(--primary-dark);
     }
-    .result .result-value.empty { color: var(--muted); font-size: 1.1rem; font-weight: 500; }
-    .result .result-unit { font-size: 1rem; font-weight: 500; }
+    .result.main .result-value { color: var(--green-dark); font-size: 2rem; }
+    .result .result-value.empty { color: var(--muted); font-size: 1.05rem; font-weight: 500; }
+    .result .result-unit { font-size: 0.95rem; font-weight: 500; }
+    .sub-result { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
     .formula {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: var(--muted);
       text-align: center;
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1px dashed var(--border);
+      margin-top: 6px;
+      line-height: 1.8;
     }
     footer { text-align: center; color: var(--muted); font-size: 0.75rem; margin-top: 8px; }
   </style>
@@ -109,16 +124,28 @@
 <body>
   <div class="wrap">
     <h1>一種坪単価 計算ツール</h1>
-    <p class="sub">土地単価と容積率から一種坪単価を計算します</p>
+    <p class="sub">土地面積・土地価格・容積率から坪単価と一種坪単価を計算します</p>
 
     <div class="card">
       <div class="field">
-        <label for="landPrice">土地坪単価</label>
+        <label for="area">土地面積</label>
         <div class="input-group">
-          <input type="number" id="landPrice" inputmode="decimal" placeholder="0" min="0" step="any">
-          <span class="unit">万円 / 坪</span>
+          <input type="number" id="area" inputmode="decimal" placeholder="0" min="0" step="any">
+          <select id="areaUnit" aria-label="面積の単位">
+            <option value="sqm">㎡</option>
+            <option value="tsubo">坪</option>
+          </select>
         </div>
-        <p class="hint">1坪あたりの土地価格を入力してください</p>
+        <p class="hint">㎡または坪を選択して入力してください（1坪 ≒ 3.305785㎡）</p>
+      </div>
+
+      <div class="field">
+        <label for="price">土地価格（総額）</label>
+        <div class="input-group">
+          <input type="number" id="price" inputmode="decimal" placeholder="0" min="0" step="any">
+          <span class="unit">万円</span>
+        </div>
+        <p class="hint">土地全体の価格を万円で入力してください</p>
       </div>
 
       <div class="field">
@@ -132,45 +159,83 @@
     </div>
 
     <div class="result">
+      <div class="result-label">坪単価</div>
+      <div class="result-value empty" id="tsuboPrice">数値を入力してください</div>
+      <div class="sub-result" id="areaInfo"></div>
+    </div>
+
+    <div class="result main">
       <div class="result-label">一種坪単価</div>
       <div class="result-value empty" id="result">数値を入力してください</div>
-      <div class="formula">一種坪単価 ＝ 土地坪単価 ÷ (容積率 ÷ 100)</div>
+    </div>
+
+    <div class="formula">
+      坪単価 ＝ 土地価格 ÷ 土地面積(坪)<br>
+      一種坪単価 ＝ 坪単価 ÷ (容積率 ÷ 100)
     </div>
 
     <footer>※ 指定容積率を基準とした概算値です</footer>
   </div>
 
   <script>
-    const landPriceEl = document.getElementById('landPrice');
+    const SQM_PER_TSUBO = 3.305785;
+
+    const areaEl = document.getElementById('area');
+    const areaUnitEl = document.getElementById('areaUnit');
+    const priceEl = document.getElementById('price');
     const farEl = document.getElementById('far');
+    const tsuboPriceEl = document.getElementById('tsuboPrice');
+    const areaInfoEl = document.getElementById('areaInfo');
     const resultEl = document.getElementById('result');
 
     function format(num) {
-      // 小数2桁まで、不要な0は除去
       return num.toLocaleString('ja-JP', { maximumFractionDigits: 2 });
     }
 
-    function calc() {
-      const landPrice = parseFloat(landPriceEl.value);
-      const far = parseFloat(farEl.value);
-
-      if (isNaN(landPrice) || isNaN(far)) {
-        resultEl.textContent = '数値を入力してください';
-        resultEl.classList.add('empty');
-        return;
-      }
-      if (far <= 0) {
-        resultEl.textContent = '容積率は0より大きい値を入力してください';
-        resultEl.classList.add('empty');
-        return;
-      }
-
-      const result = landPrice / (far / 100);
-      resultEl.innerHTML = format(result) + ' <span class="result-unit">万円 / 坪</span>';
-      resultEl.classList.remove('empty');
+    function setEmpty(el, msg) {
+      el.textContent = msg;
+      el.classList.add('empty');
     }
 
-    landPriceEl.addEventListener('input', calc);
+    function calc() {
+      const area = parseFloat(areaEl.value);
+      const price = parseFloat(priceEl.value);
+      const far = parseFloat(farEl.value);
+
+      // 坪単価の計算
+      if (isNaN(area) || isNaN(price)) {
+        setEmpty(tsuboPriceEl, '数値を入力してください');
+        areaInfoEl.textContent = '';
+      } else if (area <= 0) {
+        setEmpty(tsuboPriceEl, '土地面積は0より大きい値を入力してください');
+        areaInfoEl.textContent = '';
+      } else {
+        const areaTsubo = areaUnitEl.value === 'tsubo' ? area : area / SQM_PER_TSUBO;
+        const tsuboPrice = price / areaTsubo;
+        tsuboPriceEl.innerHTML = format(tsuboPrice) + ' <span class="result-unit">万円 / 坪</span>';
+        tsuboPriceEl.classList.remove('empty');
+        areaInfoEl.textContent = '坪換算面積：約 ' + format(areaTsubo) + ' 坪';
+
+        // 一種坪単価の計算
+        if (isNaN(far)) {
+          setEmpty(resultEl, '容積率を入力してください');
+        } else if (far <= 0) {
+          setEmpty(resultEl, '容積率は0より大きい値を入力してください');
+        } else {
+          const isshu = tsuboPrice / (far / 100);
+          resultEl.innerHTML = format(isshu) + ' <span class="result-unit">万円 / 坪</span>';
+          resultEl.classList.remove('empty');
+        }
+        return;
+      }
+
+      // 坪単価が出せない場合は一種坪単価も出せない
+      setEmpty(resultEl, '数値を入力してください');
+    }
+
+    areaEl.addEventListener('input', calc);
+    areaUnitEl.addEventListener('change', calc);
+    priceEl.addEventListener('input', calc);
     farEl.addEventListener('input', calc);
   </script>
 </body>
