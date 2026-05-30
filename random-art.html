@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ランダムアート</title>
+  <style>
+    :root {
+      --bg: #0f0f13;
+      --card: #1a1a22;
+      --accent: #c9a96e;
+      --accent-dark: #a07840;
+      --text: #f0ece4;
+      --muted: #8a8490;
+      --border: #2e2c38;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      font-weight: 300;
+      letter-spacing: .12em;
+      color: var(--accent);
+    }
+
+    header p {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 6px;
+      letter-spacing: .06em;
+    }
+
+    .gallery {
+      width: 100%;
+      max-width: 680px;
+    }
+
+    /* ---- art frame ---- */
+    .frame {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+      min-height: 360px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .frame img {
+      width: 100%;
+      max-height: 60vh;
+      object-fit: contain;
+      display: block;
+      opacity: 0;
+      transition: opacity .6s ease;
+    }
+
+    .frame img.loaded { opacity: 1; }
+
+    /* placeholder / spinner */
+    .placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      letter-spacing: .05em;
+      transition: opacity .4s ease;
+    }
+
+    .placeholder.hidden { opacity: 0; pointer-events: none; }
+
+    .placeholder svg { opacity: .3; }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---- info panel ---- */
+    .info {
+      padding: 20px 20px 4px;
+      border-top: 1px solid var(--border);
+      background: var(--card);
+      min-height: 88px;
+      transition: opacity .4s ease;
+    }
+
+    .info.hidden { opacity: 0; }
+
+    .info .title {
+      font-size: 1.08rem;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    .info .meta {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .info .meta span { display: inline-block; margin-right: 14px; }
+
+    .info .medium {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 6px;
+      font-style: italic;
+      opacity: .8;
+    }
+
+    /* ---- button ---- */
+    .btn-wrap {
+      margin-top: 28px;
+      display: flex;
+      justify-content: center;
+    }
+
+    button {
+      background: var(--accent);
+      color: #0f0f13;
+      border: none;
+      border-radius: 40px;
+      padding: 15px 44px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background .2s, transform .1s, box-shadow .2s;
+      box-shadow: 0 4px 20px rgba(201,169,110,.25);
+    }
+
+    button:hover {
+      background: #dab97e;
+      box-shadow: 0 6px 28px rgba(201,169,110,.4);
+    }
+
+    button:active { transform: scale(.97); }
+
+    button:disabled {
+      background: var(--border);
+      color: var(--muted);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* ---- error ---- */
+    .error-msg {
+      text-align: center;
+      color: #f87171;
+      font-size: 0.85rem;
+      margin-top: 12px;
+      min-height: 20px;
+    }
+
+    /* ---- counter ---- */
+    .counter {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 18px;
+      letter-spacing: .04em;
+    }
+
+    /* ---- link ---- */
+    .aic-link {
+      display: block;
+      text-align: right;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 8px 20px 16px;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      transition: color .15s;
+    }
+
+    .aic-link:hover { color: var(--accent); }
+
+    .card-wrap {
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,.5);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>RANDOM ART</h1>
+    <p>シカゴ美術館のコレクションからランダムな作品を表示します</p>
+  </header>
+
+  <div class="gallery">
+    <div class="card-wrap">
+      <div class="frame" id="frame">
+        <div class="placeholder" id="placeholder">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="8" y="12" width="48" height="40" rx="3" stroke="currentColor" stroke-width="2"/>
+            <circle cx="22" cy="26" r="5" stroke="currentColor" stroke-width="2"/>
+            <path d="M8 42 L22 28 L34 40 L44 30 L56 42" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+          <span>ボタンを押して作品を表示</span>
+        </div>
+        <img id="artImg" alt="" />
+      </div>
+
+      <div class="info hidden" id="info">
+        <div class="title" id="artTitle"></div>
+        <div class="meta">
+          <span id="artArtist"></span>
+          <span id="artDate"></span>
+        </div>
+        <div class="medium" id="artMedium"></div>
+      </div>
+
+      <a class="aic-link" id="artLink" href="https://www.artic.edu" target="_blank" rel="noopener">
+        © Art Institute of Chicago
+      </a>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="btn-wrap">
+      <button id="btn" onclick="loadArt()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 1 0 .49-3"/>
+        </svg>
+        ランダム表示
+      </button>
+    </div>
+
+    <div class="counter" id="counter"></div>
+  </div>
+
+  <script>
+    const BASE = 'https://api.artic.edu/api/v1';
+    const IMG_BASE = 'https://www.artic.edu/iiif/2';
+    const FIELDS = 'id,title,artist_display,date_display,image_id,medium_display,dimensions_display';
+    const TOTAL_PAGES = 800;
+    const PER_PAGE = 20;
+
+    let count = 0;
+    let loading = false;
+
+    async function loadArt() {
+      if (loading) return;
+      loading = true;
+
+      const btn = document.getElementById('btn');
+      const placeholder = document.getElementById('placeholder');
+      const artImg = document.getElementById('artImg');
+      const info = document.getElementById('info');
+      const errorMsg = document.getElementById('errorMsg');
+
+      btn.disabled = true;
+      errorMsg.textContent = '';
+
+      // Show spinner
+      placeholder.classList.remove('hidden');
+      placeholder.innerHTML = '<div class="spinner"></div>';
+      artImg.classList.remove('loaded');
+      info.classList.add('hidden');
+
+      try {
+        const page = Math.floor(Math.random() * TOTAL_PAGES) + 1;
+        const url = `${BASE}/artworks?page=${page}&limit=${PER_PAGE}&fields=${FIELDS}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('APIエラー');
+        const data = await res.json();
+
+        const works = (data.data || []).filter(w => w.image_id);
+        if (works.length === 0) throw new Error('画像が見つかりません');
+
+        const work = works[Math.floor(Math.random() * works.length)];
+        const imgUrl = `${IMG_BASE}/${work.image_id}/full/843,/0/default.jpg`;
+
+        await new Promise((resolve, reject) => {
+          artImg.onload = resolve;
+          artImg.onerror = reject;
+          artImg.src = imgUrl;
+          artImg.alt = work.title || '無題';
+        });
+
+        artImg.classList.add('loaded');
+        placeholder.classList.add('hidden');
+
+        document.getElementById('artTitle').textContent = work.title || '（無題）';
+        document.getElementById('artArtist').textContent = work.artist_display || '作者不詳';
+        document.getElementById('artDate').textContent = work.date_display || '';
+        document.getElementById('artMedium').textContent = work.medium_display || '';
+
+        const artLink = document.getElementById('artLink');
+        artLink.href = `https://www.artic.edu/artworks/${work.id}`;
+        artLink.textContent = '© Art Institute of Chicago — 詳細を見る →';
+
+        info.classList.remove('hidden');
+
+        count++;
+        document.getElementById('counter').textContent = `${count} 点の作品を表示しました`;
+
+      } catch (e) {
+        placeholder.innerHTML = `
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="8" y="12" width="48" height="40" rx="3" stroke="currentColor" stroke-width="2"/>
+            <circle cx="22" cy="26" r="5" stroke="currentColor" stroke-width="2"/>
+            <path d="M8 42 L22 28 L34 40 L44 30 L56 42" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+          <span>ボタンを押して作品を表示</span>`;
+        placeholder.classList.remove('hidden');
+        errorMsg.textContent = '読み込みに失敗しました。もう一度お試しください。';
+      } finally {
+        btn.disabled = false;
+        loading = false;
+      }
+    }
+  </script>
+</body>
+</html>
