@@ -24,13 +24,10 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 24px 16px 48px;
+      padding: 24px 16px 110px;
     }
 
-    header {
-      text-align: center;
-      margin-bottom: 24px;
-    }
+    header { text-align: center; margin-bottom: 20px; }
 
     header h1 {
       font-size: 1.6rem;
@@ -47,17 +44,9 @@
     }
 
     /* ---- tabs ---- */
-    .tabs-wrap {
-      width: 100%;
-      max-width: 680px;
-      margin-bottom: 20px;
-    }
+    .tabs-wrap { width: 100%; max-width: 680px; margin-bottom: 16px; }
 
-    .tabs {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
+    .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
 
     .tab {
       background: var(--card);
@@ -81,11 +70,7 @@
       font-weight: 700;
     }
 
-    .tab.masterpiece.active {
-      background: #9f7aea;
-      border-color: #9f7aea;
-    }
-
+    .tab.masterpiece.active { background: #9f7aea; border-color: #9f7aea; }
     .tab.masterpiece:not(.active):hover { border-color: #9f7aea; color: #9f7aea; }
 
     /* ---- gallery ---- */
@@ -97,7 +82,7 @@
       border-radius: 4px;
       overflow: hidden;
       position: relative;
-      min-height: 360px;
+      min-height: 300px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -105,7 +90,7 @@
 
     .frame img {
       width: 100%;
-      max-height: 60vh;
+      max-height: 55vh;
       object-fit: contain;
       display: block;
       opacity: 0;
@@ -144,10 +129,9 @@
 
     /* ---- info ---- */
     .info {
-      padding: 20px 20px 4px;
+      padding: 16px 20px 4px;
       border-top: 1px solid var(--border);
       background: var(--card);
-      min-height: 96px;
       transition: opacity .4s ease;
     }
 
@@ -166,16 +150,36 @@
     .badge.museum { background: var(--border); color: var(--muted); }
     .badge.artist-searched { background: #3b2d60; color: #c4b5fd; }
 
-    .info .title {
-      font-size: 1.08rem;
+    .info .title-ja {
+      font-size: 1.06rem;
       font-weight: 600;
       line-height: 1.4;
-      margin-bottom: 6px;
+      margin-bottom: 2px;
     }
 
-    .info .meta { font-size: 0.82rem; color: var(--muted); line-height: 1.7; }
+    .info .title-orig {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-style: italic;
+    }
+
+    .info .translating {
+      font-size: 0.75rem;
+      color: var(--muted);
+      opacity: .6;
+    }
+
+    .info .meta { font-size: 0.82rem; color: var(--muted); line-height: 1.8; }
     .info .meta span { display: inline-block; margin-right: 14px; }
-    .info .medium { font-size: 0.78rem; color: var(--muted); margin-top: 6px; font-style: italic; opacity: .8; }
+
+    .info .medium-ja {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 4px;
+      font-style: italic;
+      opacity: .8;
+    }
 
     .art-link {
       display: block;
@@ -183,7 +187,7 @@
       font-size: 0.72rem;
       color: var(--muted);
       text-decoration: none;
-      padding: 8px 20px 16px;
+      padding: 8px 20px 14px;
       background: var(--card);
       border-top: 1px solid var(--border);
       transition: color .15s;
@@ -197,15 +201,43 @@
       box-shadow: 0 8px 40px rgba(0,0,0,.5);
     }
 
-    /* ---- button ---- */
-    .btn-wrap { margin-top: 28px; display: flex; justify-content: center; }
+    .error-msg {
+      text-align: center;
+      color: #f87171;
+      font-size: 0.85rem;
+      margin-top: 10px;
+      min-height: 18px;
+    }
 
-    button {
+    .counter {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 14px;
+      letter-spacing: .04em;
+    }
+
+    /* ---- fixed button ---- */
+    .btn-fixed {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      padding: 16px 16px 28px;
+      background: linear-gradient(to top, var(--bg) 60%, transparent);
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .btn-fixed button {
+      pointer-events: all;
       background: var(--accent);
       color: #0f0f13;
       border: none;
       border-radius: 40px;
-      padding: 15px 44px;
+      padding: 15px 48px;
       font-size: 0.98rem;
       font-weight: 700;
       letter-spacing: .08em;
@@ -214,33 +246,17 @@
       align-items: center;
       gap: 10px;
       transition: background .2s, transform .1s, box-shadow .2s;
-      box-shadow: 0 4px 20px rgba(201,169,110,.25);
+      box-shadow: 0 4px 24px rgba(201,169,110,.4);
     }
 
-    button:hover { background: #dab97e; box-shadow: 0 6px 28px rgba(201,169,110,.4); }
-    button:active { transform: scale(.97); }
+    .btn-fixed button:hover { background: #dab97e; box-shadow: 0 6px 28px rgba(201,169,110,.55); }
+    .btn-fixed button:active { transform: scale(.97); }
 
-    button:disabled {
+    .btn-fixed button:disabled {
       background: var(--border);
       color: var(--muted);
       cursor: not-allowed;
       box-shadow: none;
-    }
-
-    .error-msg {
-      text-align: center;
-      color: #f87171;
-      font-size: 0.85rem;
-      margin-top: 12px;
-      min-height: 20px;
-    }
-
-    .counter {
-      text-align: center;
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-top: 18px;
-      letter-spacing: .04em;
     }
   </style>
 </head>
@@ -278,34 +294,34 @@
 
       <div class="info hidden" id="info">
         <div class="badges" id="badges"></div>
-        <div class="title" id="artTitle"></div>
+        <div class="title-ja" id="artTitleJa"></div>
+        <div class="title-orig" id="artTitleOrig"></div>
         <div class="meta">
           <span id="artArtist"></span>
           <span id="artDate"></span>
         </div>
-        <div class="medium" id="artMedium"></div>
+        <div class="medium-ja" id="artMedium"></div>
       </div>
 
       <a class="art-link" id="artLink" href="#" target="_blank" rel="noopener">詳細を見る →</a>
     </div>
 
     <div class="error-msg" id="errorMsg"></div>
-
-    <div class="btn-wrap">
-      <button id="btn" onclick="loadArt()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="1 4 1 10 7 10"/>
-          <path d="M3.51 15a9 9 0 1 0 .49-3"/>
-        </svg>
-        ランダム表示
-      </button>
-    </div>
-
     <div class="counter" id="counter"></div>
   </div>
 
+  <!-- fixed button -->
+  <div class="btn-fixed">
+    <button id="btn" onclick="loadArt()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="1 4 1 10 7 10"/>
+        <path d="M3.51 15a9 9 0 1 0 .49-3"/>
+      </svg>
+      ランダム表示
+    </button>
+  </div>
+
   <script>
-    // ---- famous artists list ----
     const FAMOUS_ARTISTS = [
       'Van Gogh', 'Monet', 'Rembrandt', 'Vermeer', 'Picasso',
       'Renoir', 'Degas', 'Cézanne', 'Seurat', 'Hopper',
@@ -314,6 +330,28 @@
       'Delacroix', 'Klimt', 'Munch', 'Kandinsky', 'Chagall',
       'Rubens', 'Pissarro', 'Sisley', 'Toulouse-Lautrec', 'Hokusai'
     ];
+
+    // ---- translation ----
+    const jaCache = {};
+
+    async function translateToJa(text) {
+      if (!text) return '';
+      if (jaCache[text]) return jaCache[text];
+      // Skip if already contains Japanese characters
+      if (/[぀-ヿ一-鿿]/.test(text)) return text;
+      try {
+        const res = await fetch(
+          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|ja`
+        );
+        const data = await res.json();
+        const translated = data.responseData?.translatedText;
+        if (translated && translated !== text) {
+          jaCache[text] = translated;
+          return translated;
+        }
+      } catch (_) {}
+      return text;
+    }
 
     // ---- tab selection ----
     let selectedMode = 'masterpiece';
@@ -326,33 +364,28 @@
       selectedMode = tab.dataset.mode;
     });
 
-    // ---- AIC fetcher ----
+    // ---- AIC ----
     async function fetchAIC(artistQuery) {
-      let url;
       if (artistQuery) {
-        url = `https://api.artic.edu/api/v1/artworks/search?q=${encodeURIComponent(artistQuery)}&fields=id,title,artist_display,date_display,image_id,medium_display&limit=30`;
-        const res = await fetch(url);
+        const res = await fetch(`https://api.artic.edu/api/v1/artworks/search?q=${encodeURIComponent(artistQuery)}&fields=id,title,artist_display,date_display,image_id,medium_display&limit=30`);
         if (!res.ok) throw new Error('AIC search error');
         const data = await res.json();
         const works = (data.data || []).filter(w => w.image_id);
         if (!works.length) throw new Error('no results');
-        const w = works[Math.floor(Math.random() * works.length)];
-        return buildAIC(w);
-      } else {
-        const page = Math.floor(Math.random() * 800) + 1;
-        const res = await fetch(`https://api.artic.edu/api/v1/artworks?page=${page}&limit=20&fields=id,title,artist_display,date_display,image_id,medium_display`);
-        if (!res.ok) throw new Error('AIC error');
-        const data = await res.json();
-        const works = (data.data || []).filter(w => w.image_id);
-        if (!works.length) throw new Error('no results');
-        const w = works[Math.floor(Math.random() * works.length)];
-        return buildAIC(w);
+        return buildAIC(works[Math.floor(Math.random() * works.length)]);
       }
+      const page = Math.floor(Math.random() * 800) + 1;
+      const res = await fetch(`https://api.artic.edu/api/v1/artworks?page=${page}&limit=20&fields=id,title,artist_display,date_display,image_id,medium_display`);
+      if (!res.ok) throw new Error('AIC error');
+      const data = await res.json();
+      const works = (data.data || []).filter(w => w.image_id);
+      if (!works.length) throw new Error('no results');
+      return buildAIC(works[Math.floor(Math.random() * works.length)]);
     }
 
     function buildAIC(w) {
       return {
-        title: w.title || '（無題）',
+        title: w.title || '',
         artist: w.artist_display || '作者不詳',
         date: w.date_display || '',
         medium: w.medium_display || '',
@@ -362,12 +395,9 @@
       };
     }
 
-    // ---- Met fetcher ----
+    // ---- Met ----
     async function fetchMet(artistQuery) {
-      const query = artistQuery
-        ? artistQuery
-        : ['painting', 'landscape', 'portrait', 'flower', 'still life', 'mythology'][Math.floor(Math.random() * 6)];
-
+      const query = artistQuery || ['painting', 'landscape', 'portrait', 'flower', 'still life', 'mythology'][Math.floor(Math.random() * 6)];
       const param = artistQuery ? `artistOrCulture=true&q=${encodeURIComponent(query)}` : `q=${encodeURIComponent(query)}`;
       const searchRes = await fetch(`https://collectionapi.metmuseum.org/public/collection/v1/search?hasImages=true&isPublicDomain=true&${param}`);
       if (!searchRes.ok) throw new Error('Met search error');
@@ -380,7 +410,7 @@
       const obj = await objRes.json();
       if (!obj.primaryImage) throw new Error('no image');
       return {
-        title: obj.title || '（無題）',
+        title: obj.title || '',
         artist: obj.artistDisplayName || '作者不詳',
         date: obj.objectDate || '',
         medium: obj.medium || '',
@@ -390,60 +420,47 @@
       };
     }
 
-    // ---- Wikimedia Commons fetcher ----
+    // ---- Wikimedia ----
     const WIKI_CATEGORIES = [
       'Category:Oil_paintings', 'Category:Watercolor_paintings',
       'Category:Portraits', 'Category:Landscape_paintings',
       'Category:Still_life_paintings', 'Category:Religious_paintings',
-      'Category:Nude_paintings', 'Category:Mythological_paintings'
+      'Category:Mythological_paintings'
     ];
 
     async function fetchWikimedia(artistQuery) {
-      let searchTerm;
-      if (artistQuery) {
-        searchTerm = artistQuery + ' painting';
-      } else {
+      if (!artistQuery) {
         const cat = WIKI_CATEGORIES[Math.floor(Math.random() * WIKI_CATEGORIES.length)];
-        const cmRes = await fetch(
-          `https://commons.wikimedia.org/w/api.php?action=query&list=categorymembers&cmtitle=${encodeURIComponent(cat)}&cmlimit=50&cmtype=file&cmnamespace=6&format=json&origin=*`
-        );
+        const cmRes = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&list=categorymembers&cmtitle=${encodeURIComponent(cat)}&cmlimit=50&cmtype=file&cmnamespace=6&format=json&origin=*`);
         if (!cmRes.ok) throw new Error('Wikimedia cat error');
         const cmData = await cmRes.json();
         const members = cmData.query?.categorymembers || [];
         if (!members.length) throw new Error('empty category');
-        const picked = members[Math.floor(Math.random() * members.length)];
-        return await fetchWikimediaByTitle(picked.title);
+        return fetchWikimediaByTitle(members[Math.floor(Math.random() * members.length)].title);
       }
-
-      const searchRes = await fetch(
-        `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&srnamespace=6&srlimit=30&format=json&origin=*`
-      );
+      const searchRes = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(artistQuery + ' painting')}&srnamespace=6&srlimit=30&format=json&origin=*`);
       if (!searchRes.ok) throw new Error('Wikimedia search error');
       const searchData = await searchRes.json();
       const results = searchData.query?.search || [];
       if (!results.length) throw new Error('no search results');
-      const picked = results[Math.floor(Math.random() * results.length)];
-      return await fetchWikimediaByTitle(picked.title);
+      return fetchWikimediaByTitle(results[Math.floor(Math.random() * results.length)].title);
     }
 
     async function fetchWikimediaByTitle(fileTitle) {
-      const infoRes = await fetch(
-        `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(fileTitle)}&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=900&format=json&origin=*`
-      );
+      const infoRes = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(fileTitle)}&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=900&format=json&origin=*`);
       if (!infoRes.ok) throw new Error('Wikimedia info error');
       const infoData = await infoRes.json();
       const page = Object.values(infoData.query?.pages || {})[0];
       const info = page?.imageinfo?.[0];
       if (!info?.url) throw new Error('no image URL');
       const ext = info.extmetadata || {};
-      const rawArtist = ext.Artist?.value || ext.Credit?.value || '';
+      const rawArtist = ext.Artist?.value || '';
       const artist = rawArtist.replace(/<[^>]*>/g, '').trim() || '作者不詳';
       const rawDate = ext.DateTimeOriginal?.value || ext.Date?.value || '';
-      const date = rawDate.replace(/<[^>]*>/g, '').trim();
       return {
         title: ext.ObjectName?.value || fileTitle.replace('File:', '').replace(/\.[^.]+$/, ''),
         artist,
-        date,
+        date: rawDate.replace(/<[^>]*>/g, '').trim(),
         medium: ext.Medium?.value?.replace(/<[^>]*>/g, '').trim() || '',
         imageUrl: info.thumburl || info.url,
         detailUrl: `https://commons.wikimedia.org/wiki/${encodeURIComponent(fileTitle)}`,
@@ -451,19 +468,18 @@
       };
     }
 
-    // ---- Cleveland fetcher ----
+    // ---- Cleveland ----
     async function fetchCleveland() {
       const skip = Math.floor(Math.random() * 28000);
       const res = await fetch(`https://openaccess-api.clevelandart.org/api/artworks/?has_image=1&limit=20&skip=${skip}&fields=id,title,creators,creation_date,technique,images,url`);
       if (!res.ok) throw new Error('Cleveland error');
       const data = await res.json();
-      const works = (data.data || []).filter(w => w.images && w.images.web && w.images.web.url);
+      const works = (data.data || []).filter(w => w.images?.web?.url);
       if (!works.length) throw new Error('no results');
       const w = works[Math.floor(Math.random() * works.length)];
-      const artist = w.creators && w.creators.length ? w.creators[0].description : '作者不詳';
       return {
-        title: w.title || '（無題）',
-        artist,
+        title: w.title || '',
+        artist: w.creators?.length ? w.creators[0].description : '作者不詳',
         date: w.creation_date || '',
         medium: w.technique || '',
         imageUrl: w.images.web.url,
@@ -472,7 +488,7 @@
       };
     }
 
-    // ---- masterpiece fetcher ----
+    // ---- Masterpiece ----
     async function fetchMasterpiece() {
       const artist = FAMOUS_ARTISTS[Math.floor(Math.random() * FAMOUS_ARTISTS.length)];
       const r = Math.random();
@@ -482,11 +498,7 @@
         ? [() => fetchMet(artist), () => fetchWikimedia(artist), () => fetchAIC(artist)]
         : [() => fetchWikimedia(artist), () => fetchAIC(artist), () => fetchMet(artist)];
       for (const fn of sources) {
-        try {
-          const work = await fn();
-          work.searchedArtist = artist;
-          return work;
-        } catch (_) { /* try next */ }
+        try { const w = await fn(); w.searchedArtist = artist; return w; } catch (_) {}
       }
       throw new Error('名作が見つかりませんでした');
     }
@@ -530,15 +542,10 @@
           else if (pick === 'met') work = await fetchMet();
           else if (pick === 'wikimedia') work = await fetchWikimedia();
           else work = await fetchCleveland();
-        } else if (selectedMode === 'wikimedia') {
-          work = await fetchWikimedia();
-        } else if (selectedMode === 'aic') {
-          work = await fetchAIC();
-        } else if (selectedMode === 'met') {
-          work = await fetchMet();
-        } else {
-          work = await fetchCleveland();
-        }
+        } else if (selectedMode === 'wikimedia') work = await fetchWikimedia();
+        else if (selectedMode === 'aic') work = await fetchAIC();
+        else if (selectedMode === 'met') work = await fetchMet();
+        else work = await fetchCleveland();
 
         await new Promise((resolve, reject) => {
           artImg.onload = resolve;
@@ -550,25 +557,44 @@
         artImg.classList.add('loaded');
         placeholder.classList.add('hidden');
 
-        // badges
+        // Show original info immediately
         const badgesEl = document.getElementById('badges');
         badgesEl.innerHTML = `<span class="badge museum">${work.museum}</span>`;
-        if (work.searchedArtist) {
-          badgesEl.innerHTML += `<span class="badge artist-searched">${work.searchedArtist} を検索</span>`;
-        }
+        if (work.searchedArtist) badgesEl.innerHTML += `<span class="badge artist-searched">${work.searchedArtist} を検索</span>`;
 
-        document.getElementById('artTitle').textContent = work.title;
+        const titleJaEl = document.getElementById('artTitleJa');
+        const titleOrigEl = document.getElementById('artTitleOrig');
+        const mediumEl = document.getElementById('artMedium');
+
+        titleJaEl.textContent = work.title || '（無題）';
+        titleJaEl.classList.add('translating');
+        titleOrigEl.textContent = '';
         document.getElementById('artArtist').textContent = work.artist;
         document.getElementById('artDate').textContent = work.date;
-        document.getElementById('artMedium').textContent = work.medium;
+        mediumEl.textContent = work.medium;
 
         const artLink = document.getElementById('artLink');
         artLink.href = work.detailUrl;
         artLink.textContent = `© ${work.museum} — 詳細を見る →`;
-
         info.classList.remove('hidden');
+
         count++;
         document.getElementById('counter').textContent = `${count} 点の作品を表示しました`;
+
+        // Translate in background
+        const [titleJa, mediumJa] = await Promise.all([
+          translateToJa(work.title),
+          translateToJa(work.medium)
+        ]);
+
+        titleJaEl.textContent = titleJa || work.title || '（無題）';
+        titleJaEl.classList.remove('translating');
+        if (titleJa && titleJa !== work.title) {
+          titleOrigEl.textContent = work.title;
+        }
+        if (mediumJa && mediumJa !== work.medium) {
+          mediumEl.textContent = mediumJa;
+        }
 
       } catch (e) {
         placeholder.innerHTML = PLACEHOLDER_SVG;
