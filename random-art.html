@@ -181,6 +181,13 @@
       opacity: .8;
     }
 
+    .artist-extra {
+      font-size: 0.75rem;
+      color: var(--muted);
+      opacity: .7;
+      margin-top: 2px;
+    }
+
     .art-link {
       display: block;
       text-align: right;
@@ -300,6 +307,7 @@
           <span id="artArtist"></span>
           <span id="artDate"></span>
         </div>
+        <div class="artist-extra" id="artArtistExtra"></div>
         <div class="medium-ja" id="artMedium"></div>
       </div>
 
@@ -331,13 +339,92 @@
       'Rubens', 'Pissarro', 'Sisley', 'Toulouse-Lautrec', 'Hokusai'
     ];
 
+    // ---- artist name dictionary ----
+    const ARTIST_JA = {
+      'Van Gogh': 'フィンセント・ファン・ゴッホ',
+      'Vincent van Gogh': 'フィンセント・ファン・ゴッホ',
+      'Monet': 'クロード・モネ',
+      'Claude Monet': 'クロード・モネ',
+      'Rembrandt': 'レンブラント・ファン・レイン',
+      'Vermeer': 'ヨハネス・フェルメール',
+      'Jan Vermeer': 'ヨハネス・フェルメール',
+      'Picasso': 'パブロ・ピカソ',
+      'Pablo Picasso': 'パブロ・ピカソ',
+      'Renoir': 'ピエール＝オーギュスト・ルノワール',
+      'Pierre-Auguste Renoir': 'ピエール＝オーギュスト・ルノワール',
+      'Degas': 'エドガー・ドガ',
+      'Edgar Degas': 'エドガー・ドガ',
+      'Cézanne': 'ポール・セザンヌ',
+      'Paul Cézanne': 'ポール・セザンヌ',
+      'Seurat': 'ジョルジュ・スーラ',
+      'Georges Seurat': 'ジョルジュ・スーラ',
+      'Hopper': 'エドワード・ホッパー',
+      'Edward Hopper': 'エドワード・ホッパー',
+      'Manet': 'エドゥアール・マネ',
+      'Édouard Manet': 'エドゥアール・マネ',
+      'Gauguin': 'ポール・ゴーギャン',
+      'Paul Gauguin': 'ポール・ゴーギャン',
+      'Matisse': 'アンリ・マティス',
+      'Henri Matisse': 'アンリ・マティス',
+      'Raphael': 'ラファエロ・サンティ',
+      'Botticelli': 'サンドロ・ボッティチェッリ',
+      'Sandro Botticelli': 'サンドロ・ボッティチェッリ',
+      'El Greco': 'エル・グレコ',
+      'Caravaggio': 'カラヴァッジョ',
+      'Velázquez': 'ディエゴ・ベラスケス',
+      'Diego Velázquez': 'ディエゴ・ベラスケス',
+      'Turner': 'ジョゼフ・マロード・ウィリアム・ターナー',
+      'J. M. W. Turner': 'ジョゼフ・マロード・ウィリアム・ターナー',
+      'Courbet': 'ギュスターヴ・クールベ',
+      'Gustave Courbet': 'ギュスターヴ・クールベ',
+      'Delacroix': 'ウジェーヌ・ドラクロワ',
+      'Eugène Delacroix': 'ウジェーヌ・ドラクロワ',
+      'Klimt': 'グスタフ・クリムト',
+      'Gustav Klimt': 'グスタフ・クリムト',
+      'Munch': 'エドヴァルド・ムンク',
+      'Edvard Munch': 'エドヴァルド・ムンク',
+      'Kandinsky': 'ワシリー・カンディンスキー',
+      'Wassily Kandinsky': 'ワシリー・カンディンスキー',
+      'Chagall': 'マルク・シャガール',
+      'Marc Chagall': 'マルク・シャガール',
+      'Rubens': 'ピーテル・パウル・ルーベンス',
+      'Peter Paul Rubens': 'ピーテル・パウル・ルーベンス',
+      'Pissarro': 'カミーユ・ピサロ',
+      'Camille Pissarro': 'カミーユ・ピサロ',
+      'Sisley': 'アルフレッド・シスレー',
+      'Alfred Sisley': 'アルフレッド・シスレー',
+      'Toulouse-Lautrec': 'アンリ・ド・トゥールーズ＝ロートレック',
+      'Henri de Toulouse-Lautrec': 'アンリ・ド・トゥールーズ＝ロートレック',
+      'Hokusai': '葛飾北斎',
+      'Katsushika Hokusai': '葛飾北斎',
+      'Leonardo da Vinci': 'レオナルド・ダ・ヴィンチ',
+      'Michelangelo': 'ミケランジェロ',
+      'Dürer': 'アルブレヒト・デューラー',
+      'Albrecht Dürer': 'アルブレヒト・デューラー',
+      'Hiroshige': '歌川広重',
+      'Utagawa Hiroshige': '歌川広重',
+      'Utamaro': '喜多川歌麿',
+      'Titian': 'ティツィアーノ',
+      'Vermeer van Delft': 'ヨハネス・フェルメール',
+      'Gustave Moreau': 'ギュスターヴ・モロー',
+      'John Singer Sargent': 'ジョン・シンガー・サージェント',
+      'Winslow Homer': 'ウィンスロー・ホーマー',
+      'Mary Cassatt': 'メアリー・カサット',
+      'Grant Wood': 'グラント・ウッド',
+      'Georges Braque': 'ジョルジュ・ブラック',
+      'Salvador Dalí': 'サルバドール・ダリ',
+      'Frida Kahlo': 'フリーダ・カーロ',
+      'Jackson Pollock': 'ジャクソン・ポロック',
+      'Andy Warhol': 'アンディ・ウォーホル',
+      'Egon Schiele': 'エゴン・シーレ',
+    };
+
     // ---- translation ----
     const jaCache = {};
 
     async function translateToJa(text) {
       if (!text) return '';
       if (jaCache[text]) return jaCache[text];
-      // Skip if already contains Japanese characters
       if (/[぀-ヿ一-鿿]/.test(text)) return text;
       try {
         const res = await fetch(
@@ -351,6 +438,30 @@
         }
       } catch (_) {}
       return text;
+    }
+
+    function parseArtistField(artistText) {
+      const lines = (artistText || '').split('\n').map(s => s.trim()).filter(Boolean);
+      return { name: lines[0] || '', extra: lines.slice(1).join(' ') };
+    }
+
+    async function translateArtistToJa(artistText) {
+      const { name, extra } = parseArtistField(artistText);
+      if (!name) return { ja: '作者不詳', orig: '', extra: '' };
+      if (/[぀-ヿ一-鿿]/.test(name)) return { ja: name, orig: '', extra };
+
+      // Dictionary lookup (try full name and last name)
+      const lastName = name.split(/\s+/).pop();
+      const jaName = ARTIST_JA[name] || ARTIST_JA[lastName];
+      if (jaName) return { ja: jaName, orig: name !== jaName ? name : '', extra };
+
+      // Fallback: translation API
+      const translated = await translateToJa(name);
+      return {
+        ja: translated,
+        orig: translated !== name ? name : '',
+        extra
+      };
     }
 
     // ---- tab selection ----
@@ -569,7 +680,9 @@
         titleJaEl.textContent = work.title || '（無題）';
         titleJaEl.classList.add('translating');
         titleOrigEl.textContent = '';
-        document.getElementById('artArtist').textContent = work.artist;
+        const { name: artistName, extra: artistExtra } = parseArtistField(work.artist);
+        document.getElementById('artArtist').textContent = artistName || '作者不詳';
+        document.getElementById('artArtistExtra').textContent = artistExtra;
         document.getElementById('artDate').textContent = work.date;
         mediumEl.textContent = work.medium;
 
@@ -582,19 +695,21 @@
         document.getElementById('counter').textContent = `${count} 点の作品を表示しました`;
 
         // Translate in background
-        const [titleJa, mediumJa] = await Promise.all([
+        const [titleJa, mediumJa, artistResult] = await Promise.all([
           translateToJa(work.title),
-          translateToJa(work.medium)
+          translateToJa(work.medium),
+          translateArtistToJa(work.artist)
         ]);
 
         titleJaEl.textContent = titleJa || work.title || '（無題）';
         titleJaEl.classList.remove('translating');
-        if (titleJa && titleJa !== work.title) {
-          titleOrigEl.textContent = work.title;
-        }
-        if (mediumJa && mediumJa !== work.medium) {
-          mediumEl.textContent = mediumJa;
-        }
+        if (titleJa && titleJa !== work.title) titleOrigEl.textContent = work.title;
+        if (mediumJa && mediumJa !== work.medium) mediumEl.textContent = mediumJa;
+
+        const artistEl = document.getElementById('artArtist');
+        artistEl.textContent = artistResult.ja || artistName || '作者不詳';
+        if (artistResult.orig) artistEl.textContent += `（${artistResult.orig}）`;
+        if (artistResult.extra) document.getElementById('artArtistExtra').textContent = artistResult.extra;
 
       } catch (e) {
         placeholder.innerHTML = PLACEHOLDER_SVG;
