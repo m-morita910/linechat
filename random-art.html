@@ -188,6 +188,53 @@
       margin-top: 2px;
     }
 
+    /* ---- wikipedia description ---- */
+    .wiki-desc {
+      padding: 14px 20px 16px;
+      border-top: 1px solid var(--border);
+      background: #16161f;
+      transition: opacity .4s ease;
+    }
+
+    .wiki-desc.hidden { display: none; }
+
+    .wiki-desc-label {
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .wiki-desc-label::before {
+      content: '';
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' stroke='%238a8490' stroke-width='1.5' fill='none'/%3E%3Cpath d='M12 8v4M12 16h.01' stroke='%238a8490' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / contain;
+    }
+
+    .wiki-desc-text {
+      font-size: 0.82rem;
+      color: #b8b4c0;
+      line-height: 1.75;
+    }
+
+    .wiki-desc-link {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 0.75rem;
+      color: var(--accent);
+      text-decoration: none;
+      opacity: .8;
+      transition: opacity .15s;
+    }
+
+    .wiki-desc-link:hover { opacity: 1; }
+
     .art-link {
       display: block;
       text-align: right;
@@ -309,6 +356,12 @@
         </div>
         <div class="artist-extra" id="artArtistExtra"></div>
         <div class="medium-ja" id="artMedium"></div>
+      </div>
+
+      <div class="wiki-desc hidden" id="wikiDesc">
+        <div class="wiki-desc-label">Wikipedia 解説</div>
+        <div class="wiki-desc-text" id="wikiDescText"></div>
+        <a class="wiki-desc-link" id="wikiDescLink" href="#" target="_blank" rel="noopener">Wikipedia で読む →</a>
       </div>
 
       <a class="art-link" id="artLink" href="#" target="_blank" rel="noopener">詳細を見る →</a>
@@ -462,6 +515,56 @@
         orig: translated !== name ? name : '',
         extra
       };
+    }
+
+    // ---- Wikipedia description ----
+    async function fetchWikipediaDesc(title, artist) {
+      const lastName = parseArtistField(artist).name.split(/[\s,]+/).find(s => s.length > 2) || '';
+      const query = title ? `${title} ${lastName}`.trim() : lastName;
+      if (!query) return null;
+
+      // Try Japanese Wikipedia first
+      try {
+        const searchRes = await fetch(
+          `https://ja.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=1&format=json&origin=*`
+        );
+        const searchData = await searchRes.json();
+        const hit = searchData.query?.search?.[0];
+        if (hit) {
+          const extractRes = await fetch(
+            `https://ja.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&exsentences=5&titles=${encodeURIComponent(hit.title)}&format=json&origin=*`
+          );
+          const extractData = await extractRes.json();
+          const page = Object.values(extractData.query?.pages || {})[0];
+          const text = page?.extract?.replace(/<[^>]*>/g, '').replace(/\n+/g, ' ').trim();
+          if (text && text.length > 60) {
+            return { text, url: `https://ja.wikipedia.org/wiki/${encodeURIComponent(hit.title)}` };
+          }
+        }
+      } catch (_) {}
+
+      // Fallback: English Wikipedia
+      try {
+        const searchRes = await fetch(
+          `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=1&format=json&origin=*`
+        );
+        const searchData = await searchRes.json();
+        const hit = searchData.query?.search?.[0];
+        if (hit) {
+          const extractRes = await fetch(
+            `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&exsentences=4&titles=${encodeURIComponent(hit.title)}&format=json&origin=*`
+          );
+          const extractData = await extractRes.json();
+          const page = Object.values(extractData.query?.pages || {})[0];
+          const text = page?.extract?.replace(/<[^>]*>/g, '').replace(/\n+/g, ' ').trim();
+          if (text && text.length > 60) {
+            const translated = await translateToJa(text.slice(0, 400));
+            return { text: translated || text, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(hit.title)}` };
+          }
+        }
+      } catch (_) {}
+
+      return null;
     }
 
     // ---- tab selection ----
@@ -642,6 +745,7 @@
       placeholder.innerHTML = '<div class="spinner"></div>';
       artImg.classList.remove('loaded');
       info.classList.add('hidden');
+      document.getElementById('wikiDesc').classList.add('hidden');
 
       try {
         let work;
@@ -694,11 +798,12 @@
         count++;
         document.getElementById('counter').textContent = `${count} 点の作品を表示しました`;
 
-        // Translate in background
-        const [titleJa, mediumJa, artistResult] = await Promise.all([
+        // Translate & fetch Wikipedia in background
+        const [titleJa, mediumJa, artistResult, wikiResult] = await Promise.all([
           translateToJa(work.title),
           translateToJa(work.medium),
-          translateArtistToJa(work.artist)
+          translateArtistToJa(work.artist),
+          fetchWikipediaDesc(work.title, work.artist)
         ]);
 
         titleJaEl.textContent = titleJa || work.title || '（無題）';
@@ -710,6 +815,14 @@
         artistEl.textContent = artistResult.ja || artistName || '作者不詳';
         if (artistResult.orig) artistEl.textContent += `（${artistResult.orig}）`;
         if (artistResult.extra) document.getElementById('artArtistExtra').textContent = artistResult.extra;
+
+        // Wikipedia description
+        const wikiDescEl = document.getElementById('wikiDesc');
+        if (wikiResult) {
+          document.getElementById('wikiDescText').textContent = wikiResult.text;
+          document.getElementById('wikiDescLink').href = wikiResult.url;
+          wikiDescEl.classList.remove('hidden');
+        }
 
       } catch (e) {
         placeholder.innerHTML = PLACEHOLDER_SVG;
