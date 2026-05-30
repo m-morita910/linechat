@@ -255,6 +255,7 @@
     <div class="tabs" id="tabs">
       <button class="tab masterpiece active" data-mode="masterpiece">名作</button>
       <button class="tab" data-mode="all">すべてランダム</button>
+      <button class="tab" data-mode="wikimedia">Wikimedia</button>
       <button class="tab" data-mode="aic">シカゴ美術館</button>
       <button class="tab" data-mode="met">メトロポリタン美術館</button>
       <button class="tab" data-mode="cleveland">クリーブランド美術館</button>
@@ -389,6 +390,67 @@
       };
     }
 
+    // ---- Wikimedia Commons fetcher ----
+    const WIKI_CATEGORIES = [
+      'Category:Oil_paintings', 'Category:Watercolor_paintings',
+      'Category:Portraits', 'Category:Landscape_paintings',
+      'Category:Still_life_paintings', 'Category:Religious_paintings',
+      'Category:Nude_paintings', 'Category:Mythological_paintings'
+    ];
+
+    async function fetchWikimedia(artistQuery) {
+      let searchTerm;
+      if (artistQuery) {
+        searchTerm = artistQuery + ' painting';
+      } else {
+        const cat = WIKI_CATEGORIES[Math.floor(Math.random() * WIKI_CATEGORIES.length)];
+        const cmRes = await fetch(
+          `https://commons.wikimedia.org/w/api.php?action=query&list=categorymembers&cmtitle=${encodeURIComponent(cat)}&cmlimit=50&cmtype=file&cmnamespace=6&format=json&origin=*`
+        );
+        if (!cmRes.ok) throw new Error('Wikimedia cat error');
+        const cmData = await cmRes.json();
+        const members = cmData.query?.categorymembers || [];
+        if (!members.length) throw new Error('empty category');
+        const picked = members[Math.floor(Math.random() * members.length)];
+        return await fetchWikimediaByTitle(picked.title);
+      }
+
+      const searchRes = await fetch(
+        `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&srnamespace=6&srlimit=30&format=json&origin=*`
+      );
+      if (!searchRes.ok) throw new Error('Wikimedia search error');
+      const searchData = await searchRes.json();
+      const results = searchData.query?.search || [];
+      if (!results.length) throw new Error('no search results');
+      const picked = results[Math.floor(Math.random() * results.length)];
+      return await fetchWikimediaByTitle(picked.title);
+    }
+
+    async function fetchWikimediaByTitle(fileTitle) {
+      const infoRes = await fetch(
+        `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(fileTitle)}&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=900&format=json&origin=*`
+      );
+      if (!infoRes.ok) throw new Error('Wikimedia info error');
+      const infoData = await infoRes.json();
+      const page = Object.values(infoData.query?.pages || {})[0];
+      const info = page?.imageinfo?.[0];
+      if (!info?.url) throw new Error('no image URL');
+      const ext = info.extmetadata || {};
+      const rawArtist = ext.Artist?.value || ext.Credit?.value || '';
+      const artist = rawArtist.replace(/<[^>]*>/g, '').trim() || '作者不詳';
+      const rawDate = ext.DateTimeOriginal?.value || ext.Date?.value || '';
+      const date = rawDate.replace(/<[^>]*>/g, '').trim();
+      return {
+        title: ext.ObjectName?.value || fileTitle.replace('File:', '').replace(/\.[^.]+$/, ''),
+        artist,
+        date,
+        medium: ext.Medium?.value?.replace(/<[^>]*>/g, '').trim() || '',
+        imageUrl: info.thumburl || info.url,
+        detailUrl: `https://commons.wikimedia.org/wiki/${encodeURIComponent(fileTitle)}`,
+        museum: 'Wikimedia Commons'
+      };
+    }
+
     // ---- Cleveland fetcher ----
     async function fetchCleveland() {
       const skip = Math.floor(Math.random() * 28000);
@@ -413,10 +475,12 @@
     // ---- masterpiece fetcher ----
     async function fetchMasterpiece() {
       const artist = FAMOUS_ARTISTS[Math.floor(Math.random() * FAMOUS_ARTISTS.length)];
-      // Try AIC and Met in random order
-      const sources = Math.random() < 0.5
-        ? [() => fetchAIC(artist), () => fetchMet(artist)]
-        : [() => fetchMet(artist), () => fetchAIC(artist)];
+      const r = Math.random();
+      const sources = r < 0.33
+        ? [() => fetchAIC(artist), () => fetchMet(artist), () => fetchWikimedia(artist)]
+        : r < 0.66
+        ? [() => fetchMet(artist), () => fetchWikimedia(artist), () => fetchAIC(artist)]
+        : [() => fetchWikimedia(artist), () => fetchAIC(artist), () => fetchMet(artist)];
       for (const fn of sources) {
         try {
           const work = await fn();
@@ -461,8 +525,13 @@
         if (selectedMode === 'masterpiece') {
           work = await fetchMasterpiece();
         } else if (selectedMode === 'all') {
-          const pick = ['aic', 'met', 'cleveland'][Math.floor(Math.random() * 3)];
-          work = pick === 'aic' ? await fetchAIC() : pick === 'met' ? await fetchMet() : await fetchCleveland();
+          const pick = ['aic', 'met', 'cleveland', 'wikimedia'][Math.floor(Math.random() * 4)];
+          if (pick === 'aic') work = await fetchAIC();
+          else if (pick === 'met') work = await fetchMet();
+          else if (pick === 'wikimedia') work = await fetchWikimedia();
+          else work = await fetchCleveland();
+        } else if (selectedMode === 'wikimedia') {
+          work = await fetchWikimedia();
         } else if (selectedMode === 'aic') {
           work = await fetchAIC();
         } else if (selectedMode === 'met') {
