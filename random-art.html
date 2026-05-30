@@ -46,20 +46,20 @@
       letter-spacing: .06em;
     }
 
-    /* ---- museum selector ---- */
-    .museum-select-wrap {
+    /* ---- tabs ---- */
+    .tabs-wrap {
       width: 100%;
       max-width: 680px;
       margin-bottom: 20px;
     }
 
-    .museum-tabs {
+    .tabs {
       display: flex;
       gap: 6px;
       flex-wrap: wrap;
     }
 
-    .museum-tab {
+    .tab {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 20px;
@@ -72,24 +72,25 @@
       white-space: nowrap;
     }
 
-    .museum-tab:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
+    .tab:hover { border-color: var(--accent); color: var(--accent); }
 
-    .museum-tab.active {
+    .tab.active {
       background: var(--accent);
       border-color: var(--accent);
       color: #0f0f13;
       font-weight: 700;
     }
 
-    .gallery {
-      width: 100%;
-      max-width: 680px;
+    .tab.masterpiece.active {
+      background: #9f7aea;
+      border-color: #9f7aea;
     }
 
-    /* ---- art frame ---- */
+    .tab.masterpiece:not(.active):hover { border-color: #9f7aea; color: #9f7aea; }
+
+    /* ---- gallery ---- */
+    .gallery { width: 100%; max-width: 680px; }
+
     .frame {
       background: var(--card);
       border: 1px solid var(--border);
@@ -128,7 +129,6 @@
     }
 
     .placeholder.hidden { opacity: 0; pointer-events: none; }
-
     .placeholder svg { opacity: .3; }
 
     .spinner {
@@ -142,16 +142,29 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ---- info panel ---- */
+    /* ---- info ---- */
     .info {
       padding: 20px 20px 4px;
       border-top: 1px solid var(--border);
       background: var(--card);
-      min-height: 88px;
+      min-height: 96px;
       transition: opacity .4s ease;
     }
 
     .info.hidden { opacity: 0; }
+
+    .badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      border-radius: 10px;
+      padding: 2px 10px;
+      letter-spacing: .04em;
+    }
+
+    .badge.museum { background: var(--border); color: var(--muted); }
+    .badge.artist-searched { background: #3b2d60; color: #c4b5fd; }
 
     .info .title {
       font-size: 1.08rem;
@@ -160,23 +173,10 @@
       margin-bottom: 6px;
     }
 
-    .info .meta {
-      font-size: 0.82rem;
-      color: var(--muted);
-      line-height: 1.7;
-    }
-
+    .info .meta { font-size: 0.82rem; color: var(--muted); line-height: 1.7; }
     .info .meta span { display: inline-block; margin-right: 14px; }
+    .info .medium { font-size: 0.78rem; color: var(--muted); margin-top: 6px; font-style: italic; opacity: .8; }
 
-    .info .medium {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 6px;
-      font-style: italic;
-      opacity: .8;
-    }
-
-    /* ---- link ---- */
     .art-link {
       display: block;
       text-align: right;
@@ -191,18 +191,6 @@
 
     .art-link:hover { color: var(--accent); }
 
-    /* ---- museum badge ---- */
-    .museum-badge {
-      display: inline-block;
-      font-size: 0.7rem;
-      background: var(--border);
-      color: var(--muted);
-      border-radius: 10px;
-      padding: 2px 10px;
-      margin-bottom: 10px;
-      letter-spacing: .04em;
-    }
-
     .card-wrap {
       border-radius: 8px;
       overflow: hidden;
@@ -210,11 +198,7 @@
     }
 
     /* ---- button ---- */
-    .btn-wrap {
-      margin-top: 28px;
-      display: flex;
-      justify-content: center;
-    }
+    .btn-wrap { margin-top: 28px; display: flex; justify-content: center; }
 
     button {
       background: var(--accent);
@@ -233,11 +217,7 @@
       box-shadow: 0 4px 20px rgba(201,169,110,.25);
     }
 
-    button:hover {
-      background: #dab97e;
-      box-shadow: 0 6px 28px rgba(201,169,110,.4);
-    }
-
+    button:hover { background: #dab97e; box-shadow: 0 6px 28px rgba(201,169,110,.4); }
     button:active { transform: scale(.97); }
 
     button:disabled {
@@ -271,12 +251,13 @@
     <p>世界の美術館コレクションからランダムな作品を表示します</p>
   </header>
 
-  <div class="museum-select-wrap">
-    <div class="museum-tabs" id="museumTabs">
-      <button class="museum-tab active" data-museum="all">すべてランダム</button>
-      <button class="museum-tab" data-museum="aic">シカゴ美術館</button>
-      <button class="museum-tab" data-museum="met">メトロポリタン美術館</button>
-      <button class="museum-tab" data-museum="cleveland">クリーブランド美術館</button>
+  <div class="tabs-wrap">
+    <div class="tabs" id="tabs">
+      <button class="tab masterpiece active" data-mode="masterpiece">名作</button>
+      <button class="tab" data-mode="all">すべてランダム</button>
+      <button class="tab" data-mode="aic">シカゴ美術館</button>
+      <button class="tab" data-mode="met">メトロポリタン美術館</button>
+      <button class="tab" data-mode="cleveland">クリーブランド美術館</button>
     </div>
   </div>
 
@@ -295,7 +276,7 @@
       </div>
 
       <div class="info hidden" id="info">
-        <div class="museum-badge" id="museumBadge"></div>
+        <div class="badges" id="badges"></div>
         <div class="title" id="artTitle"></div>
         <div class="meta">
           <span id="artArtist"></span>
@@ -323,28 +304,52 @@
   </div>
 
   <script>
-    // ---- museum tab selection ----
-    let selectedMuseum = 'all';
+    // ---- famous artists list ----
+    const FAMOUS_ARTISTS = [
+      'Van Gogh', 'Monet', 'Rembrandt', 'Vermeer', 'Picasso',
+      'Renoir', 'Degas', 'Cézanne', 'Seurat', 'Hopper',
+      'Manet', 'Gauguin', 'Matisse', 'Raphael', 'Botticelli',
+      'El Greco', 'Caravaggio', 'Velázquez', 'Turner', 'Courbet',
+      'Delacroix', 'Klimt', 'Munch', 'Kandinsky', 'Chagall',
+      'Rubens', 'Pissarro', 'Sisley', 'Toulouse-Lautrec', 'Hokusai'
+    ];
 
-    document.getElementById('museumTabs').addEventListener('click', e => {
-      const tab = e.target.closest('.museum-tab');
+    // ---- tab selection ----
+    let selectedMode = 'masterpiece';
+
+    document.getElementById('tabs').addEventListener('click', e => {
+      const tab = e.target.closest('.tab');
       if (!tab) return;
-      document.querySelectorAll('.museum-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      selectedMuseum = tab.dataset.museum;
+      selectedMode = tab.dataset.mode;
     });
 
-    // ---- fetchers ----
+    // ---- AIC fetcher ----
+    async function fetchAIC(artistQuery) {
+      let url;
+      if (artistQuery) {
+        url = `https://api.artic.edu/api/v1/artworks/search?q=${encodeURIComponent(artistQuery)}&fields=id,title,artist_display,date_display,image_id,medium_display&limit=30`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('AIC search error');
+        const data = await res.json();
+        const works = (data.data || []).filter(w => w.image_id);
+        if (!works.length) throw new Error('no results');
+        const w = works[Math.floor(Math.random() * works.length)];
+        return buildAIC(w);
+      } else {
+        const page = Math.floor(Math.random() * 800) + 1;
+        const res = await fetch(`https://api.artic.edu/api/v1/artworks?page=${page}&limit=20&fields=id,title,artist_display,date_display,image_id,medium_display`);
+        if (!res.ok) throw new Error('AIC error');
+        const data = await res.json();
+        const works = (data.data || []).filter(w => w.image_id);
+        if (!works.length) throw new Error('no results');
+        const w = works[Math.floor(Math.random() * works.length)];
+        return buildAIC(w);
+      }
+    }
 
-    async function fetchAIC() {
-      const page = Math.floor(Math.random() * 800) + 1;
-      const fields = 'id,title,artist_display,date_display,image_id,medium_display';
-      const res = await fetch(`https://api.artic.edu/api/v1/artworks?page=${page}&limit=20&fields=${fields}`);
-      if (!res.ok) throw new Error('AIC APIエラー');
-      const data = await res.json();
-      const works = (data.data || []).filter(w => w.image_id);
-      if (!works.length) throw new Error('画像なし');
-      const w = works[Math.floor(Math.random() * works.length)];
+    function buildAIC(w) {
       return {
         title: w.title || '（無題）',
         artist: w.artist_display || '作者不詳',
@@ -356,19 +361,23 @@
       };
     }
 
-    async function fetchMet() {
-      const terms = ['painting', 'landscape', 'portrait', 'flower', 'figure', 'still life', 'mythology', 'nature'];
-      const term = terms[Math.floor(Math.random() * terms.length)];
-      const searchRes = await fetch(`https://collectionapi.metmuseum.org/public/collection/v1/search?hasImages=true&isPublicDomain=true&q=${encodeURIComponent(term)}`);
-      if (!searchRes.ok) throw new Error('Met APIエラー');
+    // ---- Met fetcher ----
+    async function fetchMet(artistQuery) {
+      const query = artistQuery
+        ? artistQuery
+        : ['painting', 'landscape', 'portrait', 'flower', 'still life', 'mythology'][Math.floor(Math.random() * 6)];
+
+      const param = artistQuery ? `artistOrCulture=true&q=${encodeURIComponent(query)}` : `q=${encodeURIComponent(query)}`;
+      const searchRes = await fetch(`https://collectionapi.metmuseum.org/public/collection/v1/search?hasImages=true&isPublicDomain=true&${param}`);
+      if (!searchRes.ok) throw new Error('Met search error');
       const searchData = await searchRes.json();
       const ids = searchData.objectIDs;
-      if (!ids || !ids.length) throw new Error('検索結果なし');
-      const id = ids[Math.floor(Math.random() * Math.min(ids.length, 300))];
+      if (!ids || !ids.length) throw new Error('no results');
+      const id = ids[Math.floor(Math.random() * Math.min(ids.length, 200))];
       const objRes = await fetch(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`);
-      if (!objRes.ok) throw new Error('Met 作品取得エラー');
+      if (!objRes.ok) throw new Error('Met object error');
       const obj = await objRes.json();
-      if (!obj.primaryImage) throw new Error('画像なし');
+      if (!obj.primaryImage) throw new Error('no image');
       return {
         title: obj.title || '（無題）',
         artist: obj.artistDisplayName || '作者不詳',
@@ -380,14 +389,14 @@
       };
     }
 
+    // ---- Cleveland fetcher ----
     async function fetchCleveland() {
       const skip = Math.floor(Math.random() * 28000);
-      const fields = 'id,title,creators,creation_date,technique,images,url';
-      const res = await fetch(`https://openaccess-api.clevelandart.org/api/artworks/?has_image=1&limit=20&skip=${skip}&fields=${fields}`);
-      if (!res.ok) throw new Error('Cleveland APIエラー');
+      const res = await fetch(`https://openaccess-api.clevelandart.org/api/artworks/?has_image=1&limit=20&skip=${skip}&fields=id,title,creators,creation_date,technique,images,url`);
+      if (!res.ok) throw new Error('Cleveland error');
       const data = await res.json();
       const works = (data.data || []).filter(w => w.images && w.images.web && w.images.web.url);
-      if (!works.length) throw new Error('画像なし');
+      if (!works.length) throw new Error('no results');
       const w = works[Math.floor(Math.random() * works.length)];
       const artist = w.creators && w.creators.length ? w.creators[0].description : '作者不詳';
       return {
@@ -401,10 +410,24 @@
       };
     }
 
-    const FETCHERS = { aic: fetchAIC, met: fetchMet, cleveland: fetchCleveland };
-    const MUSEUM_KEYS = ['aic', 'met', 'cleveland'];
+    // ---- masterpiece fetcher ----
+    async function fetchMasterpiece() {
+      const artist = FAMOUS_ARTISTS[Math.floor(Math.random() * FAMOUS_ARTISTS.length)];
+      // Try AIC and Met in random order
+      const sources = Math.random() < 0.5
+        ? [() => fetchAIC(artist), () => fetchMet(artist)]
+        : [() => fetchMet(artist), () => fetchAIC(artist)];
+      for (const fn of sources) {
+        try {
+          const work = await fn();
+          work.searchedArtist = artist;
+          return work;
+        } catch (_) { /* try next */ }
+      }
+      throw new Error('名作が見つかりませんでした');
+    }
 
-    // ---- main load ----
+    // ---- load ----
     let count = 0;
     let loading = false;
 
@@ -433,12 +456,20 @@
       artImg.classList.remove('loaded');
       info.classList.add('hidden');
 
-      const museumKey = selectedMuseum === 'all'
-        ? MUSEUM_KEYS[Math.floor(Math.random() * MUSEUM_KEYS.length)]
-        : selectedMuseum;
-
       try {
-        const work = await FETCHERS[museumKey]();
+        let work;
+        if (selectedMode === 'masterpiece') {
+          work = await fetchMasterpiece();
+        } else if (selectedMode === 'all') {
+          const pick = ['aic', 'met', 'cleveland'][Math.floor(Math.random() * 3)];
+          work = pick === 'aic' ? await fetchAIC() : pick === 'met' ? await fetchMet() : await fetchCleveland();
+        } else if (selectedMode === 'aic') {
+          work = await fetchAIC();
+        } else if (selectedMode === 'met') {
+          work = await fetchMet();
+        } else {
+          work = await fetchCleveland();
+        }
 
         await new Promise((resolve, reject) => {
           artImg.onload = resolve;
@@ -450,7 +481,13 @@
         artImg.classList.add('loaded');
         placeholder.classList.add('hidden');
 
-        document.getElementById('museumBadge').textContent = work.museum;
+        // badges
+        const badgesEl = document.getElementById('badges');
+        badgesEl.innerHTML = `<span class="badge museum">${work.museum}</span>`;
+        if (work.searchedArtist) {
+          badgesEl.innerHTML += `<span class="badge artist-searched">${work.searchedArtist} を検索</span>`;
+        }
+
         document.getElementById('artTitle').textContent = work.title;
         document.getElementById('artArtist').textContent = work.artist;
         document.getElementById('artDate').textContent = work.date;
