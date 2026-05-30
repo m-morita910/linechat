@@ -788,11 +788,17 @@ const COMBINATIONS = [
 ];
 
 function getComboMatches(fScores) {
+  const THRESHOLD = 0.20;
   const pol = {};
   Object.keys(FACTORS).forEach(f => {
-    pol[f] = fScores[f] >= FACTORS[f].avg ? '+' : '-';
+    const avg   = FACTORS[f].avg;
+    const score = fScores[f];
+    if      (score >= avg + (50 - avg) * THRESHOLD) pol[f] = '+';
+    else if (score <= avg - (avg - 10) * THRESHOLD)  pol[f] = '-';
+    else                                              pol[f] = null;
   });
   return COMBINATIONS.filter(c =>
+    pol[c.keys[0]] !== null && pol[c.keys[1]] !== null &&
     pol[c.keys[0]] === c.pols[0] && pol[c.keys[1]] === c.pols[1]
   );
 }
@@ -931,9 +937,16 @@ function showResults() {
   const matches = getComboMatches(fScores);
   const comboSection = document.createElement('div');
   comboSection.className = 'combo-section';
+  const comboCount = matches.length;
+  const noMatchMsg = comboCount === 0
+    ? '<div style="color:var(--muted);font-size:0.85rem;padding:12px 0">すべての因子が平均付近のため、該当する組み合わせタイプはありません。</div>'
+    : '';
   comboSection.innerHTML =
-    '<div class="combo-section-title">性格タイプ組み合わせ（全10パターン）</div>' +
-    '<div class="combo-section-desc">2つの特性の組み合わせで見えてくる、あなたの性格パターンです。<br>各特性が日本人平均以上なら「＋」、未満なら「－」として判定しています。</div>';
+    '<div class="combo-section-title">性格タイプ組み合わせ（' + comboCount + 'パターン該当）</div>' +
+    '<div class="combo-section-desc">' +
+      '平均から上側20%・下側20%を超えた因子のみ「＋」「－」と判定し、<br>' +
+      '2つの組み合わせでわかる性格パターンを表示しています。平均付近の因子はグレーゾーンとして除外されます。' +
+    '</div>' + noMatchMsg;
 
   matches.forEach(c => {
     const colorA = FACTORS[c.keys[0]].color;
