@@ -9,7 +9,6 @@
       --bg: #0f0f13;
       --card: #1a1a22;
       --accent: #c9a96e;
-      --accent-dark: #a07840;
       --text: #f0ece4;
       --muted: #8a8490;
       --border: #2e2c38;
@@ -30,7 +29,7 @@
 
     header {
       text-align: center;
-      margin-bottom: 32px;
+      margin-bottom: 24px;
     }
 
     header h1 {
@@ -47,12 +46,51 @@
       letter-spacing: .06em;
     }
 
-    .gallery {
+    /* ---- tabs ---- */
+    .tabs-wrap {
       width: 100%;
       max-width: 680px;
+      margin-bottom: 20px;
     }
 
-    /* ---- art frame ---- */
+    .tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      padding: 7px 16px;
+      cursor: pointer;
+      transition: background .15s, color .15s, border-color .15s;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+
+    .tab:hover { border-color: var(--accent); color: var(--accent); }
+
+    .tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0f0f13;
+      font-weight: 700;
+    }
+
+    .tab.masterpiece.active {
+      background: #9f7aea;
+      border-color: #9f7aea;
+    }
+
+    .tab.masterpiece:not(.active):hover { border-color: #9f7aea; color: #9f7aea; }
+
+    /* ---- gallery ---- */
+    .gallery { width: 100%; max-width: 680px; }
+
     .frame {
       background: var(--card);
       border: 1px solid var(--border);
@@ -76,7 +114,6 @@
 
     .frame img.loaded { opacity: 1; }
 
-    /* placeholder / spinner */
     .placeholder {
       position: absolute;
       inset: 0;
@@ -92,7 +129,6 @@
     }
 
     .placeholder.hidden { opacity: 0; pointer-events: none; }
-
     .placeholder svg { opacity: .3; }
 
     .spinner {
@@ -106,16 +142,29 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ---- info panel ---- */
+    /* ---- info ---- */
     .info {
       padding: 20px 20px 4px;
       border-top: 1px solid var(--border);
       background: var(--card);
-      min-height: 88px;
+      min-height: 96px;
       transition: opacity .4s ease;
     }
 
     .info.hidden { opacity: 0; }
+
+    .badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      border-radius: 10px;
+      padding: 2px 10px;
+      letter-spacing: .04em;
+    }
+
+    .badge.museum { background: var(--border); color: var(--muted); }
+    .badge.artist-searched { background: #3b2d60; color: #c4b5fd; }
 
     .info .title {
       font-size: 1.08rem;
@@ -124,28 +173,32 @@
       margin-bottom: 6px;
     }
 
-    .info .meta {
-      font-size: 0.82rem;
+    .info .meta { font-size: 0.82rem; color: var(--muted); line-height: 1.7; }
+    .info .meta span { display: inline-block; margin-right: 14px; }
+    .info .medium { font-size: 0.78rem; color: var(--muted); margin-top: 6px; font-style: italic; opacity: .8; }
+
+    .art-link {
+      display: block;
+      text-align: right;
+      font-size: 0.72rem;
       color: var(--muted);
-      line-height: 1.7;
+      text-decoration: none;
+      padding: 8px 20px 16px;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      transition: color .15s;
     }
 
-    .info .meta span { display: inline-block; margin-right: 14px; }
+    .art-link:hover { color: var(--accent); }
 
-    .info .medium {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 6px;
-      font-style: italic;
-      opacity: .8;
+    .card-wrap {
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,.5);
     }
 
     /* ---- button ---- */
-    .btn-wrap {
-      margin-top: 28px;
-      display: flex;
-      justify-content: center;
-    }
+    .btn-wrap { margin-top: 28px; display: flex; justify-content: center; }
 
     button {
       background: var(--accent);
@@ -164,11 +217,7 @@
       box-shadow: 0 4px 20px rgba(201,169,110,.25);
     }
 
-    button:hover {
-      background: #dab97e;
-      box-shadow: 0 6px 28px rgba(201,169,110,.4);
-    }
-
+    button:hover { background: #dab97e; box-shadow: 0 6px 28px rgba(201,169,110,.4); }
     button:active { transform: scale(.97); }
 
     button:disabled {
@@ -178,7 +227,6 @@
       box-shadow: none;
     }
 
-    /* ---- error ---- */
     .error-msg {
       text-align: center;
       color: #f87171;
@@ -187,7 +235,6 @@
       min-height: 20px;
     }
 
-    /* ---- counter ---- */
     .counter {
       text-align: center;
       font-size: 0.75rem;
@@ -195,35 +242,24 @@
       margin-top: 18px;
       letter-spacing: .04em;
     }
-
-    /* ---- link ---- */
-    .aic-link {
-      display: block;
-      text-align: right;
-      font-size: 0.72rem;
-      color: var(--muted);
-      text-decoration: none;
-      padding: 8px 20px 16px;
-      background: var(--card);
-      border-top: 1px solid var(--border);
-      transition: color .15s;
-    }
-
-    .aic-link:hover { color: var(--accent); }
-
-    .card-wrap {
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 8px 40px rgba(0,0,0,.5);
-    }
   </style>
 </head>
 <body>
 
   <header>
     <h1>RANDOM ART</h1>
-    <p>シカゴ美術館のコレクションからランダムな作品を表示します</p>
+    <p>世界の美術館コレクションからランダムな作品を表示します</p>
   </header>
+
+  <div class="tabs-wrap">
+    <div class="tabs" id="tabs">
+      <button class="tab masterpiece active" data-mode="masterpiece">名作</button>
+      <button class="tab" data-mode="all">すべてランダム</button>
+      <button class="tab" data-mode="aic">シカゴ美術館</button>
+      <button class="tab" data-mode="met">メトロポリタン美術館</button>
+      <button class="tab" data-mode="cleveland">クリーブランド美術館</button>
+    </div>
+  </div>
 
   <div class="gallery">
     <div class="card-wrap">
@@ -240,6 +276,7 @@
       </div>
 
       <div class="info hidden" id="info">
+        <div class="badges" id="badges"></div>
         <div class="title" id="artTitle"></div>
         <div class="meta">
           <span id="artArtist"></span>
@@ -248,9 +285,7 @@
         <div class="medium" id="artMedium"></div>
       </div>
 
-      <a class="aic-link" id="artLink" href="https://www.artic.edu" target="_blank" rel="noopener">
-        © Art Institute of Chicago
-      </a>
+      <a class="art-link" id="artLink" href="#" target="_blank" rel="noopener">詳細を見る →</a>
     </div>
 
     <div class="error-msg" id="errorMsg"></div>
@@ -269,14 +304,140 @@
   </div>
 
   <script>
-    const BASE = 'https://api.artic.edu/api/v1';
-    const IMG_BASE = 'https://www.artic.edu/iiif/2';
-    const FIELDS = 'id,title,artist_display,date_display,image_id,medium_display,dimensions_display';
-    const TOTAL_PAGES = 800;
-    const PER_PAGE = 20;
+    // ---- famous artists list ----
+    const FAMOUS_ARTISTS = [
+      'Van Gogh', 'Monet', 'Rembrandt', 'Vermeer', 'Picasso',
+      'Renoir', 'Degas', 'Cézanne', 'Seurat', 'Hopper',
+      'Manet', 'Gauguin', 'Matisse', 'Raphael', 'Botticelli',
+      'El Greco', 'Caravaggio', 'Velázquez', 'Turner', 'Courbet',
+      'Delacroix', 'Klimt', 'Munch', 'Kandinsky', 'Chagall',
+      'Rubens', 'Pissarro', 'Sisley', 'Toulouse-Lautrec', 'Hokusai'
+    ];
 
+    // ---- tab selection ----
+    let selectedMode = 'masterpiece';
+
+    document.getElementById('tabs').addEventListener('click', e => {
+      const tab = e.target.closest('.tab');
+      if (!tab) return;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      selectedMode = tab.dataset.mode;
+    });
+
+    // ---- AIC fetcher ----
+    async function fetchAIC(artistQuery) {
+      let url;
+      if (artistQuery) {
+        url = `https://api.artic.edu/api/v1/artworks/search?q=${encodeURIComponent(artistQuery)}&fields=id,title,artist_display,date_display,image_id,medium_display&limit=30`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('AIC search error');
+        const data = await res.json();
+        const works = (data.data || []).filter(w => w.image_id);
+        if (!works.length) throw new Error('no results');
+        const w = works[Math.floor(Math.random() * works.length)];
+        return buildAIC(w);
+      } else {
+        const page = Math.floor(Math.random() * 800) + 1;
+        const res = await fetch(`https://api.artic.edu/api/v1/artworks?page=${page}&limit=20&fields=id,title,artist_display,date_display,image_id,medium_display`);
+        if (!res.ok) throw new Error('AIC error');
+        const data = await res.json();
+        const works = (data.data || []).filter(w => w.image_id);
+        if (!works.length) throw new Error('no results');
+        const w = works[Math.floor(Math.random() * works.length)];
+        return buildAIC(w);
+      }
+    }
+
+    function buildAIC(w) {
+      return {
+        title: w.title || '（無題）',
+        artist: w.artist_display || '作者不詳',
+        date: w.date_display || '',
+        medium: w.medium_display || '',
+        imageUrl: `https://www.artic.edu/iiif/2/${w.image_id}/full/843,/0/default.jpg`,
+        detailUrl: `https://www.artic.edu/artworks/${w.id}`,
+        museum: 'Art Institute of Chicago'
+      };
+    }
+
+    // ---- Met fetcher ----
+    async function fetchMet(artistQuery) {
+      const query = artistQuery
+        ? artistQuery
+        : ['painting', 'landscape', 'portrait', 'flower', 'still life', 'mythology'][Math.floor(Math.random() * 6)];
+
+      const param = artistQuery ? `artistOrCulture=true&q=${encodeURIComponent(query)}` : `q=${encodeURIComponent(query)}`;
+      const searchRes = await fetch(`https://collectionapi.metmuseum.org/public/collection/v1/search?hasImages=true&isPublicDomain=true&${param}`);
+      if (!searchRes.ok) throw new Error('Met search error');
+      const searchData = await searchRes.json();
+      const ids = searchData.objectIDs;
+      if (!ids || !ids.length) throw new Error('no results');
+      const id = ids[Math.floor(Math.random() * Math.min(ids.length, 200))];
+      const objRes = await fetch(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`);
+      if (!objRes.ok) throw new Error('Met object error');
+      const obj = await objRes.json();
+      if (!obj.primaryImage) throw new Error('no image');
+      return {
+        title: obj.title || '（無題）',
+        artist: obj.artistDisplayName || '作者不詳',
+        date: obj.objectDate || '',
+        medium: obj.medium || '',
+        imageUrl: obj.primaryImage,
+        detailUrl: obj.objectURL || 'https://www.metmuseum.org',
+        museum: 'The Metropolitan Museum of Art'
+      };
+    }
+
+    // ---- Cleveland fetcher ----
+    async function fetchCleveland() {
+      const skip = Math.floor(Math.random() * 28000);
+      const res = await fetch(`https://openaccess-api.clevelandart.org/api/artworks/?has_image=1&limit=20&skip=${skip}&fields=id,title,creators,creation_date,technique,images,url`);
+      if (!res.ok) throw new Error('Cleveland error');
+      const data = await res.json();
+      const works = (data.data || []).filter(w => w.images && w.images.web && w.images.web.url);
+      if (!works.length) throw new Error('no results');
+      const w = works[Math.floor(Math.random() * works.length)];
+      const artist = w.creators && w.creators.length ? w.creators[0].description : '作者不詳';
+      return {
+        title: w.title || '（無題）',
+        artist,
+        date: w.creation_date || '',
+        medium: w.technique || '',
+        imageUrl: w.images.web.url,
+        detailUrl: w.url || `https://www.clevelandart.org/art/${w.id}`,
+        museum: 'Cleveland Museum of Art'
+      };
+    }
+
+    // ---- masterpiece fetcher ----
+    async function fetchMasterpiece() {
+      const artist = FAMOUS_ARTISTS[Math.floor(Math.random() * FAMOUS_ARTISTS.length)];
+      // Try AIC and Met in random order
+      const sources = Math.random() < 0.5
+        ? [() => fetchAIC(artist), () => fetchMet(artist)]
+        : [() => fetchMet(artist), () => fetchAIC(artist)];
+      for (const fn of sources) {
+        try {
+          const work = await fn();
+          work.searchedArtist = artist;
+          return work;
+        } catch (_) { /* try next */ }
+      }
+      throw new Error('名作が見つかりませんでした');
+    }
+
+    // ---- load ----
     let count = 0;
     let loading = false;
+
+    const PLACEHOLDER_SVG = `
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="8" y="12" width="48" height="40" rx="3" stroke="currentColor" stroke-width="2"/>
+        <circle cx="22" cy="26" r="5" stroke="currentColor" stroke-width="2"/>
+        <path d="M8 42 L22 28 L34 40 L44 30 L56 42" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+      </svg>
+      <span>ボタンを押して作品を表示</span>`;
 
     async function loadArt() {
       if (loading) return;
@@ -290,58 +451,58 @@
 
       btn.disabled = true;
       errorMsg.textContent = '';
-
-      // Show spinner
       placeholder.classList.remove('hidden');
       placeholder.innerHTML = '<div class="spinner"></div>';
       artImg.classList.remove('loaded');
       info.classList.add('hidden');
 
       try {
-        const page = Math.floor(Math.random() * TOTAL_PAGES) + 1;
-        const url = `${BASE}/artworks?page=${page}&limit=${PER_PAGE}&fields=${FIELDS}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('APIエラー');
-        const data = await res.json();
-
-        const works = (data.data || []).filter(w => w.image_id);
-        if (works.length === 0) throw new Error('画像が見つかりません');
-
-        const work = works[Math.floor(Math.random() * works.length)];
-        const imgUrl = `${IMG_BASE}/${work.image_id}/full/843,/0/default.jpg`;
+        let work;
+        if (selectedMode === 'masterpiece') {
+          work = await fetchMasterpiece();
+        } else if (selectedMode === 'all') {
+          const pick = ['aic', 'met', 'cleveland'][Math.floor(Math.random() * 3)];
+          work = pick === 'aic' ? await fetchAIC() : pick === 'met' ? await fetchMet() : await fetchCleveland();
+        } else if (selectedMode === 'aic') {
+          work = await fetchAIC();
+        } else if (selectedMode === 'met') {
+          work = await fetchMet();
+        } else {
+          work = await fetchCleveland();
+        }
 
         await new Promise((resolve, reject) => {
           artImg.onload = resolve;
           artImg.onerror = reject;
-          artImg.src = imgUrl;
-          artImg.alt = work.title || '無題';
+          artImg.src = work.imageUrl;
+          artImg.alt = work.title;
         });
 
         artImg.classList.add('loaded');
         placeholder.classList.add('hidden');
 
-        document.getElementById('artTitle').textContent = work.title || '（無題）';
-        document.getElementById('artArtist').textContent = work.artist_display || '作者不詳';
-        document.getElementById('artDate').textContent = work.date_display || '';
-        document.getElementById('artMedium').textContent = work.medium_display || '';
+        // badges
+        const badgesEl = document.getElementById('badges');
+        badgesEl.innerHTML = `<span class="badge museum">${work.museum}</span>`;
+        if (work.searchedArtist) {
+          badgesEl.innerHTML += `<span class="badge artist-searched">${work.searchedArtist} を検索</span>`;
+        }
+
+        document.getElementById('artTitle').textContent = work.title;
+        document.getElementById('artArtist').textContent = work.artist;
+        document.getElementById('artDate').textContent = work.date;
+        document.getElementById('artMedium').textContent = work.medium;
 
         const artLink = document.getElementById('artLink');
-        artLink.href = `https://www.artic.edu/artworks/${work.id}`;
-        artLink.textContent = '© Art Institute of Chicago — 詳細を見る →';
+        artLink.href = work.detailUrl;
+        artLink.textContent = `© ${work.museum} — 詳細を見る →`;
 
         info.classList.remove('hidden');
-
         count++;
         document.getElementById('counter').textContent = `${count} 点の作品を表示しました`;
 
       } catch (e) {
-        placeholder.innerHTML = `
-          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="8" y="12" width="48" height="40" rx="3" stroke="currentColor" stroke-width="2"/>
-            <circle cx="22" cy="26" r="5" stroke="currentColor" stroke-width="2"/>
-            <path d="M8 42 L22 28 L34 40 L44 30 L56 42" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-          </svg>
-          <span>ボタンを押して作品を表示</span>`;
+        placeholder.innerHTML = PLACEHOLDER_SVG;
         placeholder.classList.remove('hidden');
         errorMsg.textContent = '読み込みに失敗しました。もう一度お試しください。';
       } finally {
