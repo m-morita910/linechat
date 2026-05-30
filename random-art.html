@@ -519,50 +519,78 @@
 
     // ---- Wikipedia description ----
     async function fetchWikipediaDesc(title, artist) {
-      const lastName = parseArtistField(artist).name.split(/[\s,]+/).find(s => s.length > 2) || '';
-      const query = title ? `${title} ${lastName}`.trim() : lastName;
-      if (!query) return null;
+      const artistName = parseArtistField(artist).name;
+      const artistLastName = artistName.split(/[\s,]+/).filter(s => s.length > 2).pop() || '';
 
-      // Try Japanese Wikipedia first
-      try {
-        const searchRes = await fetch(
-          `https://ja.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=1&format=json&origin=*`
-        );
-        const searchData = await searchRes.json();
-        const hit = searchData.query?.search?.[0];
-        if (hit) {
-          const extractRes = await fetch(
-            `https://ja.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&exsentences=5&titles=${encodeURIComponent(hit.title)}&format=json&origin=*`
-          );
-          const extractData = await extractRes.json();
-          const page = Object.values(extractData.query?.pages || {})[0];
-          const text = page?.extract?.replace(/<[^>]*>/g, '').replace(/\n+/g, ' ').trim();
-          if (text && text.length > 60) {
-            return { text, url: `https://ja.wikipedia.org/wiki/${encodeURIComponent(hit.title)}` };
-          }
-        }
-      } catch (_) {}
+      function isRelevant(result, ...terms) {
+        const hay = (result.title + ' ' + (result.snippet || '')).toLowerCase();
+        return terms.some(t => t && t.length > 2 && hay.includes(t.toLowerCase()));
+      }
 
-      // Fallback: English Wikipedia
-      try {
-        const searchRes = await fetch(
-          `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=1&format=json&origin=*`
+      async function fetchExtractJa(pageTitle) {
+        const res = await fetch(
+          `https://ja.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&exsentences=5&titles=${encodeURIComponent(pageTitle)}&format=json&origin=*`
         );
-        const searchData = await searchRes.json();
-        const hit = searchData.query?.search?.[0];
-        if (hit) {
-          const extractRes = await fetch(
-            `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&exsentences=4&titles=${encodeURIComponent(hit.title)}&format=json&origin=*`
-          );
-          const extractData = await extractRes.json();
-          const page = Object.values(extractData.query?.pages || {})[0];
-          const text = page?.extract?.replace(/<[^>]*>/g, '').replace(/\n+/g, ' ').trim();
-          if (text && text.length > 60) {
-            const translated = await translateToJa(text.slice(0, 400));
-            return { text: translated || text, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(hit.title)}` };
+        const data = await res.json();
+        const page = Object.values(data.query?.pages || {})[0];
+        return page?.extract?.replace(/<[^>]*>/g, '').replace(/\n+/g, ' ').trim() || '';
+      }
+
+      async function fetchExtractEn(pageTitle) {
+        const res = await fetch(
+          `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&exsentences=4&titles=${encodeURIComponent(pageTitle)}&format=json&origin=*`
+        );
+        const data = await res.json();
+        const page = Object.values(data.query?.pages || {})[0];
+        return page?.extract?.replace(/<[^>]*>/g, '').replace(/\n+/g, ' ').trim() || '';
+      }
+
+      // Step 1: Search Japanese Wikipedia for the artwork
+      if (title) {
+        try {
+          const q = `${title} ${artistLastName}`.trim();
+          const res = await fetch(`https://ja.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&srlimit=3&format=json&origin=*`);
+          const data = await res.json();
+          const results = data.query?.search || [];
+          const hit = results.find(r => isRelevant(r, title, artistLastName, artistName));
+          if (hit) {
+            const text = await fetchExtractJa(hit.title);
+            if (text.length > 60) return { text, url: `https://ja.wikipedia.org/wiki/${encodeURIComponent(hit.title)}`, label: 'Wikipedia 解説' };
           }
-        }
-      } catch (_) {}
+        } catch (_) {}
+      }
+
+      // Step 2: Search Japanese Wikipedia for the artist
+      if (artistName) {
+        try {
+          const res = await fetch(`https://ja.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(artistName)}&srlimit=3&format=json&origin=*`);
+          const data = await res.json();
+          const results = data.query?.search || [];
+          const hit = results.find(r => isRelevant(r, artistLastName, artistName));
+          if (hit) {
+            const text = await fetchExtractJa(hit.title);
+            if (text.length > 60) return { text, url: `https://ja.wikipedia.org/wiki/${encodeURIComponent(hit.title)}`, label: `${artistName} について` };
+          }
+        } catch (_) {}
+      }
+
+      // Step 3: Fallback to English Wikipedia for the artwork
+      if (title) {
+        try {
+          const q = `${title} ${artistLastName}`.trim();
+          const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&srlimit=3&format=json&origin=*`);
+          const data = await res.json();
+          const results = data.query?.search || [];
+          const hit = results.find(r => isRelevant(r, title, artistLastName, artistName));
+          if (hit) {
+            const text = await fetchExtractEn(hit.title);
+            if (text.length > 60) {
+              const translated = await translateToJa(text.slice(0, 400));
+              return { text: translated || text, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(hit.title)}`, label: 'Wikipedia 解説' };
+            }
+          }
+        } catch (_) {}
+      }
 
       return null;
     }
@@ -819,6 +847,7 @@
         // Wikipedia description
         const wikiDescEl = document.getElementById('wikiDesc');
         if (wikiResult) {
+          wikiDescEl.querySelector('.wiki-desc-label').textContent = wikiResult.label || 'Wikipedia 解説';
           document.getElementById('wikiDescText').textContent = wikiResult.text;
           document.getElementById('wikiDescLink').href = wikiResult.url;
           wikiDescEl.classList.remove('hidden');
