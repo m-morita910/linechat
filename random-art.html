@@ -522,6 +522,13 @@
       const artistName = parseArtistField(artist).name;
       const artistLastName = artistName.split(/[\s,]+/).filter(s => s.length > 2).pop() || '';
 
+      // Check that the fetched article text actually mentions the artist
+      function textMentionsArtist(text) {
+        if (!artistLastName) return true;
+        return text.toLowerCase().slice(0, 700).includes(artistLastName.toLowerCase());
+      }
+
+      // Check search result title/snippet mentions relevant terms
       function isRelevant(result, ...terms) {
         const hay = (result.title + ' ' + (result.snippet || '')).toLowerCase();
         return terms.some(t => t && t.length > 2 && hay.includes(t.toLowerCase()));
@@ -545,46 +552,50 @@
         return page?.extract?.replace(/<[^>]*>/g, '').replace(/\n+/g, ' ').trim() || '';
       }
 
-      // Step 1: Search Japanese Wikipedia for the artwork
-      if (title) {
+      // Step 1: Japanese Wikipedia — artwork article (must mention artist in text)
+      if (title && artistLastName) {
         try {
           const q = `${title} ${artistLastName}`.trim();
           const res = await fetch(`https://ja.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&srlimit=3&format=json&origin=*`);
           const data = await res.json();
           const results = data.query?.search || [];
-          const hit = results.find(r => isRelevant(r, title, artistLastName, artistName));
+          const hit = results.find(r => isRelevant(r, title, artistLastName));
           if (hit) {
             const text = await fetchExtractJa(hit.title);
-            if (text.length > 60) return { text, url: `https://ja.wikipedia.org/wiki/${encodeURIComponent(hit.title)}`, label: 'Wikipedia 解説' };
+            if (text.length > 60 && textMentionsArtist(text)) {
+              return { text, url: `https://ja.wikipedia.org/wiki/${encodeURIComponent(hit.title)}`, label: 'Wikipedia 解説' };
+            }
           }
         } catch (_) {}
       }
 
-      // Step 2: Search Japanese Wikipedia for the artist
+      // Step 2: Japanese Wikipedia — artist bio (title must contain artist's last name)
       if (artistName) {
         try {
           const res = await fetch(`https://ja.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(artistName)}&srlimit=3&format=json&origin=*`);
           const data = await res.json();
           const results = data.query?.search || [];
-          const hit = results.find(r => isRelevant(r, artistLastName, artistName));
+          const hit = results.find(r => r.title.toLowerCase().includes(artistLastName.toLowerCase()));
           if (hit) {
             const text = await fetchExtractJa(hit.title);
-            if (text.length > 60) return { text, url: `https://ja.wikipedia.org/wiki/${encodeURIComponent(hit.title)}`, label: `${artistName} について` };
+            if (text.length > 60) {
+              return { text, url: `https://ja.wikipedia.org/wiki/${encodeURIComponent(hit.title)}`, label: `作者について` };
+            }
           }
         } catch (_) {}
       }
 
-      // Step 3: Fallback to English Wikipedia for the artwork
-      if (title) {
+      // Step 3: English Wikipedia — artwork article (must mention artist in text)
+      if (title && artistLastName) {
         try {
           const q = `${title} ${artistLastName}`.trim();
           const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&srlimit=3&format=json&origin=*`);
           const data = await res.json();
           const results = data.query?.search || [];
-          const hit = results.find(r => isRelevant(r, title, artistLastName, artistName));
+          const hit = results.find(r => isRelevant(r, title, artistLastName));
           if (hit) {
             const text = await fetchExtractEn(hit.title);
-            if (text.length > 60) {
+            if (text.length > 60 && textMentionsArtist(text)) {
               const translated = await translateToJa(text.slice(0, 400));
               return { text: translated || text, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(hit.title)}`, label: 'Wikipedia 解説' };
             }
