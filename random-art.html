@@ -708,22 +708,34 @@
     // ---- translation ----
     const jaCache = {};
 
+    function stripHtml(html) {
+      if (!html) return '';
+      try {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        doc.querySelectorAll('[style*="display:none"],[style*="display: none"],.noprint,script,style').forEach(el => el.remove());
+        return doc.body.textContent.trim().replace(/\s+/g, ' ');
+      } catch (_) {
+        return html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+      }
+    }
+
     async function translateToJa(text) {
       if (!text) return '';
-      if (jaCache[text]) return jaCache[text];
-      if (/[぀-ヿ一-鿿]/.test(text)) return text;
+      const clean = text.slice(0, 490);
+      if (jaCache[clean]) return jaCache[clean];
+      if (/[぀-ヿ一-鿿]/.test(clean)) return clean;
       try {
         const res = await fetch(
-          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|ja`
+          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(clean)}&langpair=en|ja`
         );
         const data = await res.json();
         const translated = data.responseData?.translatedText;
-        if (translated && translated !== text) {
-          jaCache[text] = translated;
+        if (translated && translated !== clean && !/QUERY LENGTH/i.test(translated)) {
+          jaCache[clean] = translated;
           return translated;
         }
       } catch (_) {}
-      return text;
+      return clean;
     }
 
     function parseArtistField(artistText) {
@@ -945,14 +957,13 @@
       const info = page?.imageinfo?.[0];
       if (!info?.url) throw new Error('no image URL');
       const ext = info.extmetadata || {};
-      const rawArtist = ext.Artist?.value || '';
-      const artist = rawArtist.replace(/<[^>]*>/g, '').trim() || '作者不詳';
+      const artist = stripHtml(ext.Artist?.value || '') || '作者不詳';
       const rawDate = ext.DateTimeOriginal?.value || ext.Date?.value || '';
       return {
-        title: ext.ObjectName?.value || fileTitle.replace('File:', '').replace(/\.[^.]+$/, ''),
+        title: stripHtml(ext.ObjectName?.value || '') || fileTitle.replace('File:', '').replace(/\.[^.]+$/, ''),
         artist,
-        date: rawDate.replace(/<[^>]*>/g, '').trim(),
-        medium: ext.Medium?.value?.replace(/<[^>]*>/g, '').trim() || '',
+        date: stripHtml(rawDate),
+        medium: stripHtml(ext.Medium?.value || ''),
         imageUrl: info.thumburl || info.url,
         detailUrl: `https://commons.wikimedia.org/wiki/${encodeURIComponent(fileTitle)}`,
         museum: 'Wikimedia Commons'
@@ -1065,16 +1076,15 @@
       if (!info?.url) throw new Error('no image URL');
 
       const ext = info.extmetadata || {};
-      const rawArtist = ext.Artist?.value || ext.Credit?.value || '';
-      const photographer = rawArtist.replace(/<[^>]*>/g, '').trim() || '撮影者不詳';
+      const photographer = stripHtml(ext.Artist?.value || ext.Credit?.value || '') || '撮影者不詳';
       const rawDate = ext.DateTimeOriginal?.value || ext.Date?.value || '';
-      const rawTitle = ext.ObjectName?.value || chosen.title.replace('File:', '').replace(/\.[^.]+$/, '');
-      const description = ext.ImageDescription?.value?.replace(/<[^>]*>/g, '').trim() || '';
+      const rawTitle = stripHtml(ext.ObjectName?.value || '') || chosen.title.replace('File:', '').replace(/\.[^.]+$/, '');
+      const description = stripHtml(ext.ImageDescription?.value || '');
 
       return {
         title: rawTitle,
         artist: photographer,
-        date: rawDate.replace(/<[^>]*>/g, '').trim(),
+        date: stripHtml(rawDate),
         medium: description.slice(0, 80) || theme.replace(' photograph', ''),
         imageUrl: info.thumburl || info.url,
         detailUrl: `https://commons.wikimedia.org/wiki/${encodeURIComponent(chosen.title)}`,
