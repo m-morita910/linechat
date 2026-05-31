@@ -1034,6 +1034,7 @@
     ];
 
     const NATURE_BAD = /diagram|chart|document|\.svg$|icon|logo|symbol|\.pdf$|\bbird\b|\bfish\b|\binsect\b|\banimal\b|\bbear\b|\bdeer\b|\belephant\b|\blion\b|\btiger\b|\bbutterfly\b/i;
+    const NATURE_QUALITY = /scenic|stunning|beautiful|panoram|breathtaking|magnificent|spectacular|paradise|idyllic|pristine|majestic|picturesque|landscape|aerial|vista/i;
 
     async function fetchNature() {
       for (let t = 0; t < 3; t++) {
@@ -1049,7 +1050,10 @@
             /\.(jpg|jpeg|png|webp)$/i.test(f.title) && !NATURE_BAD.test(f.title)
           );
           if (!files.length) continue;
-          const chosen = files[Math.floor(Math.random() * files.length)];
+          // ファイル名に景観キーワードが含まれるものを優先、なければ全体からランダム
+          const quality = files.filter(f => NATURE_QUALITY.test(f.title));
+          const pool = quality.length ? quality : files;
+          const chosen = pool[Math.floor(Math.random() * pool.length)];
 
           const infoRes = await fetch(
             `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(chosen.title)}&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=1200&format=json&origin=*`
