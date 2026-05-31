@@ -979,7 +979,7 @@ function showResults() {
     : '';
 
   comboSection.innerHTML =
-    '<div class="combo-section-title">あなたの性格タイプ（' + comboCount + 'パターン）</div>' +
+    '<div class="combo-section-title">あなたの性格タイプ（' + (comboCount === 0 ? 1 : comboCount) + 'パターン）</div>' +
     '<div class="combo-section-desc">' +
       '平均から上側25%・下側25%を超えた因子のみ「＋」「－」と判定し、<br>' +
       '2つの組み合わせでわかる性格パターンを表示しています。平均付近の因子はグレーゾーンとして除外されます。' +
