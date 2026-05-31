@@ -1035,26 +1035,33 @@
       'coastal sunset colorful photograph',
     ];
 
+    const NATURE_EXCLUDE = '-diagram -chart -microform -document -map -icon -logo -symbol -graph -test -evaluation -target -form -scan -index -catalog';
+    const NATURE_BAD = /microform|diagram|chart|document|\.svg$|test.target|evaluation|icon|logo|symbol|\.pdf$|index|catalog|form\b|map\b/i;
+
     async function fetchNature() {
       const theme = NATURE_THEMES[Math.floor(Math.random() * NATURE_THEMES.length)];
       const offset = Math.floor(Math.random() * 150);
+      const query = `${theme} ${NATURE_EXCLUDE}`;
       const searchRes = await fetch(
-        `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(theme)}&srnamespace=6&srlimit=40&sroffset=${offset}&format=json&origin=*`
+        `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srnamespace=6&srlimit=50&sroffset=${offset}&format=json&origin=*`
       );
       if (!searchRes.ok) throw new Error('Nature search error');
       const searchData = await searchRes.json();
       let results = searchData.query?.search || [];
       if (!results.length) {
-        // オフセットが多すぎた場合は先頭から再試行
         const fallbackRes = await fetch(
-          `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(theme)}&srnamespace=6&srlimit=40&format=json&origin=*`
+          `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srnamespace=6&srlimit=50&format=json&origin=*`
         );
         const fallbackData = await fallbackRes.json();
         results = fallbackData.query?.search || [];
         if (!results.length) throw new Error('no nature results');
       }
-      const imageResults = results.filter(r => /\.(jpg|jpeg|png|webp)$/i.test(r.title));
-      const pool = imageResults.length ? imageResults : results;
+      // 写真ファイルのみ・非自然コンテンツを除外
+      const imageResults = results.filter(r =>
+        /\.(jpg|jpeg|png|webp)$/i.test(r.title) && !NATURE_BAD.test(r.title) && !NATURE_BAD.test(r.snippet || '')
+      );
+      const pool = imageResults.length ? imageResults : results.filter(r => /\.(jpg|jpeg|png|webp)$/i.test(r.title));
+      if (!pool.length) throw new Error('no valid nature images');
       const chosen = pool[Math.floor(Math.random() * pool.length)];
 
       const infoRes = await fetch(
