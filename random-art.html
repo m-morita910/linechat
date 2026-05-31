@@ -1142,7 +1142,8 @@
             } else {
               work = await fetchMasterpiece();
             }
-            if (shownImages.has(work.imageUrl) && attempts < 5) continue;
+            const isPortrait = /\bportrait\b|\bself.portrait\b|\bbust\b|\bhead of\b/i.test(work.title);
+            if (attempts < 5 && (shownImages.has(work.imageUrl) || (isPortrait && selectedMode !== 'nature' && Math.random() > 0.2))) continue;
             await new Promise((resolve, reject) => {
               artImg.onload = resolve;
               artImg.onerror = reject;
