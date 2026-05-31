@@ -360,11 +360,12 @@
 
   <header>
     <h1>RANDOM ART</h1>
-    <p>世界の美術館コレクションからランダムな作品を表示します</p>
+    <p>名画と自然の絶景をランダムに表示します</p>
   </header>
 
   <div class="tabs-wrap">
     <div class="tabs" id="tabs">
+      <button class="tab" data-mode="random">ランダム</button>
       <button class="tab masterpiece active" data-mode="masterpiece">アート</button>
       <button class="tab nature" data-mode="nature">自然</button>
     </div>
@@ -1087,6 +1088,8 @@
         let work;
         if (selectedMode === 'nature') {
           work = await fetchNature();
+        } else if (selectedMode === 'random') {
+          work = Math.random() < 0.5 ? await fetchMasterpiece() : await fetchNature();
         } else {
           work = await fetchMasterpiece();
         }
