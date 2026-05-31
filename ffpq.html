@@ -970,12 +970,10 @@ function showResults() {
   container.innerHTML = '';
 
   // ── Combination section ──
-  const allMatches = getComboMatches(fScores);
-  const MAX_DISPLAY = 5;
-  const matches = allMatches.slice(0, MAX_DISPLAY);
+  const matches = getComboMatches(fScores);
   const comboSection = document.createElement('div');
   comboSection.className = 'combo-section';
-  const comboCount = allMatches.length;
+  const comboCount = matches.length;
 
   const noMatchHTML = comboCount === 0
     ? '<div class="combo-card" style="border-left-color:#9ca3af">' +
@@ -987,16 +985,12 @@ function showResults() {
       '</div>'
     : '';
 
-  const hiddenNote = allMatches.length > MAX_DISPLAY
-    ? '<div class="combo-hidden-note">該当数が多いため上位 ' + MAX_DISPLAY + ' パターンのみ表示しています</div>'
-    : '';
-
   comboSection.innerHTML =
     '<div class="combo-section-title">あなたの性格タイプ（' + (comboCount === 0 ? 1 : comboCount) + 'パターン）</div>' +
     '<div class="combo-section-desc">' +
       '平均から約30%を超えた因子のみ「＋」「－」と判定し、<br>' +
       '2つの組み合わせでわかる性格パターンを表示しています。平均付近の因子はグレーゾーンとして除外されます。' +
-    '</div>' + noMatchHTML + hiddenNote;
+    '</div>' + noMatchHTML;
 
   matches.forEach(c => {
     const colorA = FACTORS[c.keys[0]].color;
