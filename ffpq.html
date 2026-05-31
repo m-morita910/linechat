@@ -487,6 +487,14 @@
       margin-bottom: 16px;
       line-height: 1.6;
     }
+    .combo-hidden-note {
+      font-size: 0.8rem;
+      color: var(--primary);
+      background: var(--primary-light);
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+    }
     .combo-card {
       background: var(--card);
       border-radius: 14px;
@@ -949,10 +957,12 @@ function showResults() {
   container.innerHTML = '';
 
   // ── Combination section ──
-  const matches = getComboMatches(fScores);
+  const allMatches = getComboMatches(fScores);
+  const MAX_DISPLAY = 5;
+  const matches = allMatches.slice(0, MAX_DISPLAY);
   const comboSection = document.createElement('div');
   comboSection.className = 'combo-section';
-  const comboCount = matches.length;
+  const comboCount = allMatches.length;
 
   const noMatchHTML = comboCount === 0
     ? '<div class="combo-card" style="border-left-color:#9ca3af">' +
@@ -964,12 +974,16 @@ function showResults() {
       '</div>'
     : '';
 
+  const hiddenNote = allMatches.length > MAX_DISPLAY
+    ? '<div class="combo-hidden-note">該当数が多いため上位 ' + MAX_DISPLAY + ' パターンのみ表示しています</div>'
+    : '';
+
   comboSection.innerHTML =
-    '<div class="combo-section-title">あなたの生活タイプ（' + (comboCount > 0 ? comboCount + 'パターン該当' : 'バランスタイプ') + '）</div>' +
+    '<div class="combo-section-title">あなたの性格タイプ（' + comboCount + 'パターン）</div>' +
     '<div class="combo-section-desc">' +
       '平均から上側25%・下側25%を超えた因子のみ「＋」「－」と判定し、<br>' +
       '2つの組み合わせでわかる性格パターンを表示しています。平均付近の因子はグレーゾーンとして除外されます。' +
-    '</div>' + noMatchHTML;
+    '</div>' + noMatchHTML + hiddenNote;
 
   matches.forEach(c => {
     const colorA = FACTORS[c.keys[0]].color;
