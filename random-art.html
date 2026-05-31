@@ -1023,51 +1023,58 @@
 
     // ---- Nature ----
     const NATURE_THEMES = [
-      // 明るい水・海岸
-      'sunny beach tropical photograph',
-      'turquoise ocean water photograph',
-      'waterfall sunlight photograph',
-      'tropical beach palm trees photograph',
-      'colorful coral reef photograph',
-      'mountain lake reflection sunny photograph',
+      // 海・湖・川
+      'turquoise ocean coastal landscape photograph',
+      'waterfall sunlight landscape photograph',
+      'tropical beach sunny landscape photograph',
+      'mountain lake reflection sunny landscape photograph',
       'river valley sunny landscape photograph',
-      'fjord sunny photograph',
+      'fjord sunny landscape photograph',
+      'coastal cliffs ocean landscape photograph',
+      'sea cove turquoise water landscape photograph',
+      'lakeside mountains landscape photograph',
+      'river canyon landscape photograph',
       // 花・草原
-      'lavender field sunny photograph',
+      'lavender field sunny landscape photograph',
       'cherry blossom landscape photograph',
-      'tulip field colorful photograph',
-      'sunflower field photograph',
-      'wildflower meadow colorful photograph',
+      'tulip field colorful landscape photograph',
+      'sunflower field landscape photograph',
+      'wildflower meadow colorful landscape photograph',
       'poppy field landscape photograph',
-      'spring blossom orchard photograph',
-      'alpine meadow flowers photograph',
+      'spring blossom orchard landscape photograph',
+      'alpine meadow flowers landscape photograph',
+      'vineyard autumn landscape photograph',
+      'spring countryside green hills landscape photograph',
       // 山・高原
-      'snow mountain sunny blue sky photograph',
-      'mountain sunset golden hour photograph',
+      'snow mountain sunny blue sky landscape photograph',
+      'mountain sunset golden hour landscape photograph',
       'glacier sunny landscape photograph',
-      'rice terraces landscape photograph',
-      // 森・緑
-      'bamboo forest green photograph',
-      'forest sunlight rays photograph',
-      'autumn colorful forest photograph',
-      'rainforest waterfall photograph',
+      'rice terraces green landscape photograph',
+      'mountain valley spring landscape photograph',
+      'rocky mountain panorama landscape photograph',
+      'mountain stream waterfall landscape photograph',
+      'rolling green hills landscape photograph',
+      // 森
+      'bamboo forest green landscape photograph',
+      'forest sunlight rays landscape photograph',
+      'autumn colorful forest landscape photograph',
+      'forest waterfall landscape photograph',
       // 砂漠・大地
-      'sand dunes golden photograph',
-      'sandstone arch sunny photograph',
+      'sand dunes golden landscape photograph',
+      'sandstone arch sunny landscape photograph',
       'canyon sunny landscape photograph',
-      'salt flat reflection photograph',
-      // その他明るい自然
+      'salt flat reflection landscape photograph',
+      // その他
       'rainbow over landscape photograph',
-      'hot air balloon colorful landscape photograph',
-      'savanna golden hour photograph',
-      'wheat field golden landscape photograph',
-      'tropical garden photograph',
-      'iceberg blue ocean photograph',
-      'coastal sunset colorful photograph',
+      'wheat field golden sunset landscape photograph',
+      'iceberg blue ocean landscape photograph',
+      'coastal sunset colorful landscape photograph',
+      'dramatic sunset sky clouds landscape photograph',
+      'green valley spring landscape photograph',
     ];
 
-    const NATURE_EXCLUDE = '-diagram -chart -microform -document -map -icon -logo -symbol -graph -test -evaluation -target -form -scan -index -catalog';
-    const NATURE_BAD = /microform|diagram|chart|document|\.svg$|test.target|evaluation|icon|logo|symbol|\.pdf$|index|catalog|form\b|map\b/i;
+    const NATURE_EXCLUDE = '-diagram -chart -microform -document -map -icon -logo -symbol -graph -test -evaluation -target -form -scan -index -catalog -animal -bird -fish -insect -deer -bear -wolf -elephant -lion -tiger -snake -frog -butterfly -people -person -portrait -crowd';
+    const NATURE_BAD = /microform|diagram|chart|document|\.svg$|test.target|evaluation|icon|logo|symbol|\.pdf$|index|catalog|form\b|map\b|\bbird\b|\bfish\b|\binsect\b|\banimal\b|\bbear\b|\bdeer\b|\belephant\b|\blion\b|\btiger\b|\bbutterfly\b/i;
 
     async function fetchNature() {
       const theme = NATURE_THEMES[Math.floor(Math.random() * NATURE_THEMES.length)];
