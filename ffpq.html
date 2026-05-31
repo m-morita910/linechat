@@ -395,8 +395,8 @@
     }
 
     .sub-factors {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
+      flex-direction: column;
       gap: 8px;
       margin-top: 14px;
       padding-top: 14px;
@@ -407,7 +407,13 @@
       border-radius: 10px;
       padding: 10px 12px;
     }
-    .sub-name { font-size: 0.72rem; color: var(--muted); margin-bottom: 2px; }
+    .sub-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .sub-name { font-size: 0.82rem; font-weight: 700; }
     .sub-score { font-size: 1.05rem; font-weight: 800; }
     .sub-denom { font-size: 0.65rem; color: #9ca3af; font-weight: 500; }
     .sub-bar {
@@ -421,6 +427,12 @@
       height: 100%;
       border-radius: 2px;
       transition: width 0.9s ease;
+    }
+    .sub-desc {
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.55;
+      margin-top: 6px;
     }
 
     .btn-retry {
@@ -685,6 +697,34 @@ const SUB_NAMES = {
   P1:  "進取",       P2:  "空想",   P3:  "芸術への関心", P4: "内的経験",  P5:  "奔放",
 };
 
+const SUB_DESCS = {
+  Ex1: 'じっとしているのが嫌いで、よくしゃべる。',
+  Ex2: '他人を導いたり、コントロールするのが好き。',
+  Ex3: 'みんなでわいわいやるのが好きで、グループにいるほどエネルギーが増える。',
+  Ex4: '刺激が強い環境を好み、他人と戦うのも好き。',
+  Ex5: '他人に注目されたり、大勢のなかで目立つのが好き。',
+  A1:  '他人に優しく接し、親切にしてやるのが好き。',
+  A2:  '周囲に誰かがいると、めちゃくちゃ気を使うタイプ。',
+  A3:  '他人をすぐに信頼し、いろんなタイプの人を好きになれる。',
+  A4:  '他人の感情を簡単に理解し、相手の感情を自分のことのように感じられるタイプ。',
+  A5:  '他人を見下さず、すべての人へ平等に接するのがうまい。',
+  C1:  '細かいところまでこだわり、何事にも丁寧にしっかり行う。',
+  C2:  '難しいものごとでも根気よく続けられるタイプ。',
+  C3:  '約束は必ず守り、決めたことを途中で放り出さないタイプ。',
+  C4:  '衝動や欲望に流されずに、感情をコントロールするのがうまい。',
+  C5:  '綿密なプランを立てるのがうまい。',
+  Em1: '将来のことに対して不安にならないし、細かいことに心配にならない。',
+  Em2: '感情がたかぶって頭が白くなったり、体が震えてパフォーマンスが下がるタイプ。',
+  Em3: '孤独に弱く、誰かから冷たくされるとすぐ憂鬱になってしまうタイプ。',
+  Em4: '脳内に自分へのネガティブな思考がうずまきやすいタイプ。',
+  Em5: 'すぐにポジティブになったかと思えば、すぐにネガティブになってしまうタイプ。',
+  P1:  '見知らぬものに飛びつき、いろいろと考えるのが好きなタイプ。',
+  P2:  '斬新なイメージを作り出すのが好きで、ずっと空想するのが好きなタイプ。',
+  P3:  'アートや美しいものが大好きで、畏敬の念を覚えやすいタイプ。',
+  P4:  'いろいろな感情を味わい、自分の感覚にすぐ気づくのが得意。',
+  P5:  '自分が思ったことを自由にやるのが好きなタイプ。',
+};
+
 const COMBINATIONS = [
   // ── Em × Ex ──
   { keys: ['Em','Ex'], pols: ['+','-'], label: 'Em＋ × Ex－', name: '陰鬱な悲観主義者',
@@ -899,11 +939,14 @@ function showResults() {
       const sPct = Math.max(0, Math.min(100, ((ss - 2) / 8) * 100));
       return `
         <div class="sub-item">
-          <div class="sub-name">${SUB_NAMES[sk]}</div>
-          <div class="sub-score" style="color:${f.color}">${ss}<span class="sub-denom"> / 10</span></div>
+          <div class="sub-item-header">
+            <div class="sub-name">${SUB_NAMES[sk]}</div>
+            <div class="sub-score" style="color:${f.color}">${ss}<span class="sub-denom"> / 10</span></div>
+          </div>
           <div class="sub-bar">
             <div class="sub-bar-fill" style="width:${sPct}%;background:${f.color}"></div>
           </div>
+          <div class="sub-desc">${SUB_DESCS[sk]}</div>
         </div>`;
     }).join('');
 
