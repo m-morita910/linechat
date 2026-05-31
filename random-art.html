@@ -726,11 +726,11 @@
       if (/[぀-ヿ一-鿿]/.test(clean)) return clean;
       try {
         const res = await fetch(
-          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(clean)}&langpair=en|ja`
+          `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ja&dt=t&q=${encodeURIComponent(clean)}`
         );
         const data = await res.json();
-        const translated = data.responseData?.translatedText;
-        if (translated && translated !== clean && !/QUERY LENGTH/i.test(translated)) {
+        const translated = data?.[0]?.map(part => part?.[0] || '').join('').trim();
+        if (translated && translated !== clean) {
           jaCache[clean] = translated;
           return translated;
         }
