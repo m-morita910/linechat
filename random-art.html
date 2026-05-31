@@ -73,6 +73,9 @@
     .tab.masterpiece.active { background: #9f7aea; border-color: #9f7aea; }
     .tab.masterpiece:not(.active):hover { border-color: #9f7aea; color: #9f7aea; }
 
+    .tab.nature.active { background: #22c55e; border-color: #22c55e; color: #0f0f13; }
+    .tab.nature:not(.active):hover { border-color: #22c55e; color: #22c55e; }
+
     /* ---- gallery ---- */
     .gallery { width: 100%; max-width: 680px; }
 
@@ -363,6 +366,7 @@
   <div class="tabs-wrap">
     <div class="tabs" id="tabs">
       <button class="tab masterpiece active" data-mode="masterpiece">名作</button>
+      <button class="tab nature" data-mode="nature">自然</button>
       <button class="tab" data-mode="all">すべてランダム</button>
       <button class="tab" data-mode="wikimedia">Wikimedia</button>
       <button class="tab" data-mode="aic">シカゴ美術館</button>
@@ -969,6 +973,75 @@
       };
     }
 
+    // ---- Nature ----
+    const NATURE_THEMES = [
+      'waterfall landscape photograph',
+      'mountain sunset landscape photograph',
+      'ocean waves coastal photograph',
+      'forest path landscape photograph',
+      'canyon landscape photograph',
+      'glacier landscape photograph',
+      'desert landscape photograph',
+      'lake reflection landscape photograph',
+      'aurora borealis photograph',
+      'beach sunset photograph',
+      'meadow wildflowers landscape photograph',
+      'rainforest photograph',
+      'fjord landscape photograph',
+      'snow mountain peak photograph',
+      'river valley landscape photograph',
+      'sea cliff coastal photograph',
+      'savanna landscape photograph',
+      'volcanic landscape photograph',
+      'autumn leaves forest photograph',
+      'cherry blossom landscape photograph',
+      'lavender field photograph',
+      'tropical island photograph',
+      'night sky stars landscape photograph',
+      'misty morning forest photograph',
+      'rocky coastline photograph',
+    ];
+
+    async function fetchNature() {
+      const theme = NATURE_THEMES[Math.floor(Math.random() * NATURE_THEMES.length)];
+      const searchRes = await fetch(
+        `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(theme)}&srnamespace=6&srlimit=40&format=json&origin=*`
+      );
+      if (!searchRes.ok) throw new Error('Nature search error');
+      const searchData = await searchRes.json();
+      const results = searchData.query?.search || [];
+      if (!results.length) throw new Error('no nature results');
+      const imageResults = results.filter(r => /\.(jpg|jpeg|png|webp)$/i.test(r.title));
+      const pool = imageResults.length ? imageResults : results;
+      const chosen = pool[Math.floor(Math.random() * pool.length)];
+
+      const infoRes = await fetch(
+        `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(chosen.title)}&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=1200&format=json&origin=*`
+      );
+      if (!infoRes.ok) throw new Error('Nature info error');
+      const infoData = await infoRes.json();
+      const page = Object.values(infoData.query?.pages || {})[0];
+      const info = page?.imageinfo?.[0];
+      if (!info?.url) throw new Error('no image URL');
+
+      const ext = info.extmetadata || {};
+      const rawArtist = ext.Artist?.value || ext.Credit?.value || '';
+      const photographer = rawArtist.replace(/<[^>]*>/g, '').trim() || '撮影者不詳';
+      const rawDate = ext.DateTimeOriginal?.value || ext.Date?.value || '';
+      const rawTitle = ext.ObjectName?.value || chosen.title.replace('File:', '').replace(/\.[^.]+$/, '');
+      const description = ext.ImageDescription?.value?.replace(/<[^>]*>/g, '').trim() || '';
+
+      return {
+        title: rawTitle,
+        artist: photographer,
+        date: rawDate.replace(/<[^>]*>/g, '').trim(),
+        medium: description.slice(0, 80) || theme.replace(' photograph', ''),
+        imageUrl: info.thumburl || info.url,
+        detailUrl: `https://commons.wikimedia.org/wiki/${encodeURIComponent(chosen.title)}`,
+        museum: '自然写真 / Wikimedia Commons'
+      };
+    }
+
     // ---- Masterpiece ----
     async function fetchMasterpiece() {
       const artist = FAMOUS_ARTISTS[Math.floor(Math.random() * FAMOUS_ARTISTS.length)];
@@ -1025,7 +1098,8 @@
           else if (pick === 'met') work = await fetchMet();
           else if (pick === 'wikimedia') work = await fetchWikimedia();
           else work = await fetchCleveland();
-        } else if (selectedMode === 'wikimedia') work = await fetchWikimedia();
+        } else if (selectedMode === 'nature') work = await fetchNature();
+        else if (selectedMode === 'wikimedia') work = await fetchWikimedia();
         else if (selectedMode === 'aic') work = await fetchAIC();
         else if (selectedMode === 'met') work = await fetchMet();
         else work = await fetchCleveland();
