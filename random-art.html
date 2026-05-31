@@ -996,17 +996,51 @@
       'night sky stars landscape photograph',
       'misty morning forest photograph',
       'rocky coastline photograph',
+      'sand dunes desert photograph',
+      'mountain lake reflection photograph',
+      'tropical beach palm trees photograph',
+      'iceberg ocean photograph',
+      'redwood forest photograph',
+      'rice terraces landscape photograph',
+      'hot spring landscape photograph',
+      'lightning storm photograph',
+      'salt flat landscape photograph',
+      'coral reef underwater photograph',
+      'mangrove forest photograph',
+      'tulip field photograph',
+      'autumn forest river photograph',
+      'fog valley landscape photograph',
+      'mountain meadow wildflowers photograph',
+      'coastal sunset rocks photograph',
+      'cave stalactites photograph',
+      'rainbow landscape photograph',
+      'snowy forest winter photograph',
+      'tropical waterfall photograph',
+      'wheat field landscape photograph',
+      'geothermal landscape photograph',
+      'estuary wetlands photograph',
+      'alpine lake photograph',
+      'sandstone arch photograph',
     ];
 
     async function fetchNature() {
       const theme = NATURE_THEMES[Math.floor(Math.random() * NATURE_THEMES.length)];
+      const offset = Math.floor(Math.random() * 150);
       const searchRes = await fetch(
-        `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(theme)}&srnamespace=6&srlimit=40&format=json&origin=*`
+        `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(theme)}&srnamespace=6&srlimit=40&sroffset=${offset}&format=json&origin=*`
       );
       if (!searchRes.ok) throw new Error('Nature search error');
       const searchData = await searchRes.json();
-      const results = searchData.query?.search || [];
-      if (!results.length) throw new Error('no nature results');
+      let results = searchData.query?.search || [];
+      if (!results.length) {
+        // オフセットが多すぎた場合は先頭から再試行
+        const fallbackRes = await fetch(
+          `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(theme)}&srnamespace=6&srlimit=40&format=json&origin=*`
+        );
+        const fallbackData = await fallbackRes.json();
+        results = fallbackData.query?.search || [];
+        if (!results.length) throw new Error('no nature results');
+      }
       const imageResults = results.filter(r => /\.(jpg|jpeg|png|webp)$/i.test(r.title));
       const pool = imageResults.length ? imageResults : results;
       const chosen = pool[Math.floor(Math.random() * pool.length)];
