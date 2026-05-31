@@ -859,17 +859,30 @@ const COMBINATIONS = [
 function getComboMatches(fScores) {
   const THRESHOLD = 0.25;
   const pol = {};
+  const strength = {};
   Object.keys(FACTORS).forEach(f => {
     const avg   = FACTORS[f].avg;
     const score = fScores[f];
-    if      (score >= avg + (50 - avg) * THRESHOLD) pol[f] = '+';
-    else if (score <= avg - (avg - 10) * THRESHOLD)  pol[f] = '-';
-    else                                              pol[f] = null;
+    if (score >= avg + (50 - avg) * THRESHOLD) {
+      pol[f] = '+';
+      strength[f] = (score - avg) / (50 - avg);
+    } else if (score <= avg - (avg - 10) * THRESHOLD) {
+      pol[f] = '-';
+      strength[f] = (avg - score) / (avg - 10);
+    } else {
+      pol[f] = null;
+      strength[f] = 0;
+    }
   });
-  return COMBINATIONS.filter(c =>
-    pol[c.keys[0]] !== null && pol[c.keys[1]] !== null &&
-    pol[c.keys[0]] === c.pols[0] && pol[c.keys[1]] === c.pols[1]
-  );
+  return COMBINATIONS
+    .filter(c =>
+      pol[c.keys[0]] !== null && pol[c.keys[1]] !== null &&
+      pol[c.keys[0]] === c.pols[0] && pol[c.keys[1]] === c.pols[1]
+    )
+    .sort((a, b) =>
+      (strength[b.keys[0]] + strength[b.keys[1]]) -
+      (strength[a.keys[0]] + strength[a.keys[1]])
+    );
 }
 
 let currentQ = 0;
