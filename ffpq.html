@@ -947,8 +947,47 @@ function showResults() {
   const container = document.getElementById('results-container');
   container.innerHTML = '';
 
+  // ── Combination section ──
+  const matches = getComboMatches(fScores);
+  const comboSection = document.createElement('div');
+  comboSection.className = 'combo-section';
+  const comboCount = matches.length;
+
+  const noMatchHTML = comboCount === 0
+    ? '<div class="combo-card" style="border-left-color:#9ca3af">' +
+        '<div class="combo-header">' +
+          '<span class="combo-key">バランスタイプ</span>' +
+          '<span class="combo-name">バランスタイプ</span>' +
+        '</div>' +
+        '<div class="combo-desc">極端な癖が少なく、相手や環境に応じて自然に振る舞いを変えられるバランス型。強い個性で押すより、状況を見て適切に対応できるタイプです。</div>' +
+      '</div>'
+    : '';
+
+  comboSection.innerHTML =
+    '<div class="combo-section-title">あなたの生活タイプ（' + (comboCount > 0 ? comboCount + 'パターン該当' : 'バランスタイプ') + '）</div>' +
+    '<div class="combo-section-desc">' +
+      '平均から上側25%・下側25%を超えた因子のみ「＋」「－」と判定し、<br>' +
+      '2つの組み合わせでわかる性格パターンを表示しています。平均付近の因子はグレーゾーンとして除外されます。' +
+    '</div>' + noMatchHTML;
+
+  matches.forEach(c => {
+    const colorA = FACTORS[c.keys[0]].color;
+    const card = document.createElement('div');
+    card.className = 'combo-card';
+    card.style.borderLeftColor = colorA;
+    card.innerHTML =
+      '<div class="combo-header">' +
+        '<span class="combo-key">' + c.label + '</span>' +
+        '<span class="combo-name">' + c.name + '</span>' +
+      '</div>' +
+      '<div class="combo-desc">' + c.desc + '</div>';
+    comboSection.appendChild(card);
+  });
+
+  // 生活タイプを先頭に、因子カードを後に追加
+  container.appendChild(comboSection);
   ['Ex', 'A', 'C', 'Em', 'P'].forEach(key => {
-    const f    = FACTORS[key];
+    const f     = FACTORS[key];
     const score = fScores[key];
     const pct   = ((score - 10) / 40) * 100;
     const avgPct = ((f.avg - 10) / 40) * 100;
@@ -1001,52 +1040,6 @@ function showResults() {
     container.appendChild(card);
   });
 
-  // ── Combination section ──
-  const matches = getComboMatches(fScores);
-  const comboSection = document.createElement('div');
-  comboSection.className = 'combo-section';
-  const comboCount = matches.length;
-
-  let summaryHTML = '';
-  let noMatchHTML = '';
-
-  if (comboCount > 0) {
-    const typeNames = matches.map(c => c.name).join('・');
-    summaryHTML = '<div class="combo-summary">あなたのタイプは <strong>' + typeNames + '</strong> です。</div>';
-  } else {
-    noMatchHTML =
-      '<div class="combo-card" style="border-left-color:#9ca3af">' +
-        '<div class="combo-header">' +
-          '<span class="combo-key">バランスタイプ</span>' +
-          '<span class="combo-name">バランスタイプ</span>' +
-        '</div>' +
-        '<div class="combo-desc">極端な癖が少なく、相手や環境に応じて自然に振る舞いを変えられるバランス型。強い個性で押すより、状況を見て適切に対応できるタイプです。</div>' +
-      '</div>';
-  }
-
-  comboSection.innerHTML =
-    '<div class="combo-section-title">性格タイプ組み合わせ（' + (comboCount > 0 ? comboCount + 'パターン該当' : 'バランスタイプ') + '）</div>' +
-    summaryHTML +
-    '<div class="combo-section-desc">' +
-      '平均から上側25%・下側25%を超えた因子のみ「＋」「－」と判定し、<br>' +
-      '2つの組み合わせでわかる性格パターンを表示しています。平均付近の因子はグレーゾーンとして除外されます。' +
-    '</div>' + noMatchHTML;
-
-  matches.forEach(c => {
-    const colorA = FACTORS[c.keys[0]].color;
-    const card = document.createElement('div');
-    card.className = 'combo-card';
-    card.style.borderLeftColor = colorA;
-    card.innerHTML =
-      '<div class="combo-header">' +
-        '<span class="combo-key">' + c.label + '</span>' +
-        '<span class="combo-name">' + c.name + '</span>' +
-      '</div>' +
-      '<div class="combo-desc">' + c.desc + '</div>';
-    comboSection.appendChild(card);
-  });
-
-  container.appendChild(comboSection);
   showScreen('result');
 }
 
