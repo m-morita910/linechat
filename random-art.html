@@ -848,7 +848,8 @@
     // ---- AIC ----
     async function fetchAIC(artistQuery) {
       if (artistQuery) {
-        const res = await fetch(`https://api.artic.edu/api/v1/artworks/search?q=${encodeURIComponent(artistQuery)}&fields=id,title,artist_display,date_display,image_id,medium_display&limit=30`);
+        const from = Math.floor(Math.random() * 5) * 20;
+        const res = await fetch(`https://api.artic.edu/api/v1/artworks/search?q=${encodeURIComponent(artistQuery)}&fields=id,title,artist_display,date_display,image_id,medium_display&limit=30&from=${from}`);
         if (!res.ok) throw new Error('AIC search error');
         const data = await res.json();
         const works = (data.data || []).filter(w => w.image_id);
@@ -919,11 +920,17 @@
         if (!members.length) throw new Error('empty category');
         return fetchWikimediaByTitle(members[Math.floor(Math.random() * members.length)].title);
       }
-      const searchRes = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(artistQuery + ' painting')}&srnamespace=6&srlimit=30&format=json&origin=*`);
+      const wikiOffset = Math.floor(Math.random() * 60);
+      const searchRes = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(artistQuery + ' painting')}&srnamespace=6&srlimit=30&sroffset=${wikiOffset}&format=json&origin=*`);
       if (!searchRes.ok) throw new Error('Wikimedia search error');
       const searchData = await searchRes.json();
-      const results = searchData.query?.search || [];
-      if (!results.length) throw new Error('no search results');
+      let results = searchData.query?.search || [];
+      if (!results.length) {
+        const fb = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(artistQuery + ' painting')}&srnamespace=6&srlimit=30&format=json&origin=*`);
+        const fbData = await fb.json();
+        results = fbData.query?.search || [];
+        if (!results.length) throw new Error('no search results');
+      }
       return fetchWikimediaByTitle(results[Math.floor(Math.random() * results.length)].title);
     }
 
@@ -1090,6 +1097,7 @@
     // ---- load ----
     let count = 0;
     let loading = false;
+    const shownImages = new Set();
 
     const PLACEHOLDER_SVG = `
       <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1120,13 +1128,18 @@
 
       try {
         let work;
-        if (selectedMode === 'nature') {
-          work = await fetchNature();
-        } else if (selectedMode === 'random') {
-          work = Math.random() < 0.5 ? await fetchMasterpiece() : await fetchNature();
-        } else {
-          work = await fetchMasterpiece();
-        }
+        let attempts = 0;
+        do {
+          if (selectedMode === 'nature') {
+            work = await fetchNature();
+          } else if (selectedMode === 'random') {
+            work = Math.random() < 0.5 ? await fetchMasterpiece() : await fetchNature();
+          } else {
+            work = await fetchMasterpiece();
+          }
+          attempts++;
+        } while (shownImages.has(work.imageUrl) && attempts < 5);
+        shownImages.add(work.imageUrl);
 
         await new Promise((resolve, reject) => {
           artImg.onload = resolve;
