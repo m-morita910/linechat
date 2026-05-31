@@ -91,8 +91,8 @@
       font-weight: 700;
     }
 
-    .tab.masterpiece.active { background: #6d4fc2; border-color: #6d4fc2; color: #fff; }
-    .tab.masterpiece:not(.active):hover { border-color: #6d4fc2; color: #6d4fc2; }
+    .tab.masterpiece.active { background: #e07020; border-color: #e07020; color: #fff; }
+    .tab.masterpiece:not(.active):hover { border-color: #e07020; color: #e07020; }
 
     .tab.nature.active { background: #2a8a4a; border-color: #2a8a4a; color: #fff; }
     .tab.nature:not(.active):hover { border-color: #2a8a4a; color: #2a8a4a; }
@@ -1188,25 +1188,28 @@
 
       try {
         let work;
-        let attempts = 0;
-        do {
-          if (selectedMode === 'nature') {
-            work = await fetchNature();
-          } else if (selectedMode === 'random') {
-            work = Math.random() < 0.5 ? await fetchMasterpiece() : await fetchNature();
-          } else {
-            work = await fetchMasterpiece();
+        for (let attempts = 0; attempts < 6; attempts++) {
+          try {
+            if (selectedMode === 'nature') {
+              work = await fetchNature();
+            } else if (selectedMode === 'random') {
+              work = Math.random() < 0.5 ? await fetchMasterpiece() : await fetchNature();
+            } else {
+              work = await fetchMasterpiece();
+            }
+            if (shownImages.has(work.imageUrl) && attempts < 5) continue;
+            await new Promise((resolve, reject) => {
+              artImg.onload = resolve;
+              artImg.onerror = reject;
+              artImg.src = work.imageUrl;
+              artImg.alt = work.title;
+            });
+            break;
+          } catch (_) {
+            if (attempts >= 5) throw new Error('画像を取得できませんでした');
           }
-          attempts++;
-        } while (shownImages.has(work.imageUrl) && attempts < 5);
+        }
         shownImages.add(work.imageUrl);
-
-        await new Promise((resolve, reject) => {
-          artImg.onload = resolve;
-          artImg.onerror = reject;
-          artImg.src = work.imageUrl;
-          artImg.alt = work.title;
-        });
 
         artImg.classList.add('loaded');
         placeholder.classList.add('hidden');
