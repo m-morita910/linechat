@@ -920,17 +920,11 @@
         if (!members.length) throw new Error('empty category');
         return fetchWikimediaByTitle(members[Math.floor(Math.random() * members.length)].title);
       }
-      const wikiOffset = Math.floor(Math.random() * 60);
-      const searchRes = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(artistQuery + ' painting')}&srnamespace=6&srlimit=30&sroffset=${wikiOffset}&format=json&origin=*`);
+      const searchRes = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(artistQuery + ' painting')}&srnamespace=6&srlimit=50&format=json&origin=*`);
       if (!searchRes.ok) throw new Error('Wikimedia search error');
       const searchData = await searchRes.json();
-      let results = searchData.query?.search || [];
-      if (!results.length) {
-        const fb = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(artistQuery + ' painting')}&srnamespace=6&srlimit=30&format=json&origin=*`);
-        const fbData = await fb.json();
-        results = fbData.query?.search || [];
-        if (!results.length) throw new Error('no search results');
-      }
+      const results = searchData.query?.search || [];
+      if (!results.length) throw new Error('no search results');
       return fetchWikimediaByTitle(results[Math.floor(Math.random() * results.length)].title);
     }
 
