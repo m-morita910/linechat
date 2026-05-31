@@ -6,12 +6,14 @@
   <title>ランダムアート</title>
   <style>
     :root {
-      --bg: #0f0f13;
-      --card: #1a1a22;
-      --accent: #c9a96e;
-      --text: #f0ece4;
-      --muted: #8a8490;
-      --border: #2e2c38;
+      --bg: #f2ebe0;
+      --card: #fdfaf5;
+      --accent: #7c5230;
+      --accent-hover: #5e3c22;
+      --text: #2c1a0a;
+      --muted: #9a8070;
+      --border: #ddd0c0;
+      --wiki-bg: #ede6da;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,7 +29,7 @@
       padding: 24px 16px 110px;
     }
 
-    header { text-align: center; margin-bottom: 20px; }
+    header { text-align: center; margin-bottom: 20px; position: relative; width: 100%; max-width: 680px; }
 
     header h1 {
       font-size: 1.6rem;
@@ -42,6 +44,25 @@
       margin-top: 6px;
       letter-spacing: .06em;
     }
+
+    .reload-btn {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--muted);
+      transition: background .15s, color .15s, border-color .15s;
+      font-size: 1rem;
+    }
+    .reload-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 
     /* ---- tabs ---- */
     .tabs-wrap { width: 100%; max-width: 680px; margin-bottom: 16px; }
@@ -66,15 +87,15 @@
     .tab.active {
       background: var(--accent);
       border-color: var(--accent);
-      color: #0f0f13;
+      color: #fff;
       font-weight: 700;
     }
 
-    .tab.masterpiece.active { background: #9f7aea; border-color: #9f7aea; }
-    .tab.masterpiece:not(.active):hover { border-color: #9f7aea; color: #9f7aea; }
+    .tab.masterpiece.active { background: #6d4fc2; border-color: #6d4fc2; color: #fff; }
+    .tab.masterpiece:not(.active):hover { border-color: #6d4fc2; color: #6d4fc2; }
 
-    .tab.nature.active { background: #22c55e; border-color: #22c55e; color: #0f0f13; }
-    .tab.nature:not(.active):hover { border-color: #22c55e; color: #22c55e; }
+    .tab.nature.active { background: #2a8a4a; border-color: #2a8a4a; color: #fff; }
+    .tab.nature:not(.active):hover { border-color: #2a8a4a; color: #2a8a4a; }
 
     /* ---- gallery ---- */
     .gallery { width: 100%; max-width: 680px; }
@@ -190,13 +211,14 @@
     }
 
     .badge.museum { background: var(--border); color: var(--muted); }
-    .badge.artist-searched { background: #3b2d60; color: #c4b5fd; }
+    .badge.artist-searched { background: #e8e0f8; color: #5a3ea0; }
 
     .info .title-ja {
       font-size: 1.06rem;
       font-weight: 600;
       line-height: 1.4;
       margin-bottom: 2px;
+      color: var(--text);
     }
 
     .info .title-orig {
@@ -234,7 +256,7 @@
     .wiki-desc {
       padding: 14px 20px 16px;
       border-top: 1px solid var(--border);
-      background: #16161f;
+      background: var(--wiki-bg);
       transition: opacity .4s ease;
     }
 
@@ -256,12 +278,12 @@
       display: inline-block;
       width: 14px;
       height: 14px;
-      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' stroke='%238a8490' stroke-width='1.5' fill='none'/%3E%3Cpath d='M12 8v4M12 16h.01' stroke='%238a8490' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / contain;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' stroke='%239a8070' stroke-width='1.5' fill='none'/%3E%3Cpath d='M12 8v4M12 16h.01' stroke='%239a8070' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / contain;
     }
 
     .wiki-desc-text {
       font-size: 0.82rem;
-      color: #b8b4c0;
+      color: #5a4a3a;
       line-height: 1.75;
     }
 
@@ -294,12 +316,12 @@
     .card-wrap {
       border-radius: 8px;
       overflow: hidden;
-      box-shadow: 0 8px 40px rgba(0,0,0,.5);
+      box-shadow: 0 4px 20px rgba(100,70,40,.15);
     }
 
     .error-msg {
       text-align: center;
-      color: #f87171;
+      color: #c0392b;
       font-size: 0.85rem;
       margin-top: 10px;
       min-height: 18px;
@@ -330,7 +352,7 @@
     .btn-fixed button {
       pointer-events: all;
       background: var(--accent);
-      color: #0f0f13;
+      color: #fff;
       border: none;
       border-radius: 40px;
       padding: 15px 48px;
@@ -342,10 +364,10 @@
       align-items: center;
       gap: 10px;
       transition: background .2s, transform .1s, box-shadow .2s;
-      box-shadow: 0 4px 24px rgba(201,169,110,.4);
+      box-shadow: 0 4px 24px rgba(124,82,48,.35);
     }
 
-    .btn-fixed button:hover { background: #dab97e; box-shadow: 0 6px 28px rgba(201,169,110,.55); }
+    .btn-fixed button:hover { background: var(--accent-hover); box-shadow: 0 6px 28px rgba(124,82,48,.5); }
     .btn-fixed button:active { transform: scale(.97); }
 
     .btn-fixed button:disabled {
@@ -361,6 +383,7 @@
   <header>
     <h1>RANDOM ART</h1>
     <p>名画と自然の絶景をランダムに表示します</p>
+    <button class="reload-btn" onclick="location.reload()" title="ページをリロード">↺</button>
   </header>
 
   <div class="tabs-wrap">
@@ -439,31 +462,29 @@
       'Leonardo da Vinci', 'Michelangelo', 'Raphael', 'Botticelli', 'Titian',
       'Dürer', 'Bruegel', 'Bosch', 'Van Eyck', 'Holbein',
       'Tintoretto', 'Veronese', 'Correggio', 'Giorgione',
-      // Baroque
-      'Caravaggio', 'Rembrandt', 'Vermeer', 'Rubens', 'Velázquez',
-      'El Greco', 'Frans Hals', 'Van Dyck', 'Poussin', 'Murillo',
-      'Zurbarán', 'Lorrain', 'Artemisia Gentileschi',
+      // Baroque（暗すぎる画家は除外）
+      'Rembrandt', 'Vermeer', 'Rubens', 'Velázquez',
+      'Frans Hals', 'Van Dyck', 'Murillo',
       // 18th Century
       'Goya', 'Gainsborough', 'Reynolds', 'Fragonard', 'Chardin',
       'Watteau', 'David', 'Ingres', 'Tiepolo',
       // Romanticism & Realism
-      'Delacroix', 'Géricault', 'Courbet', 'Corot', 'Millet',
-      'Constable', 'Turner', 'Friedrich', 'Daumier',
+      'Delacroix', 'Courbet', 'Corot', 'Millet',
+      'Constable', 'Turner',
       // Academic & Pre-Raphaelites
       'Bouguereau', 'Alma-Tadema', 'Millais', 'Rossetti',
-      'Leighton', 'Waterhouse', 'Gérôme',
-      // Impressionism
+      'Leighton', 'Waterhouse', 'Gérôme', 'Tissot',
+      // Impressionism（最も明るいカテゴリ）
       'Monet', 'Manet', 'Renoir', 'Degas', 'Pissarro',
-      'Sisley', 'Morisot', 'Cassatt',
+      'Sisley', 'Morisot', 'Cassatt', 'Caillebotte', 'Boudin',
       // Post-Impressionism
       'Van Gogh', 'Cézanne', 'Gauguin', 'Seurat', 'Signac',
       'Toulouse-Lautrec', 'Rousseau',
-      // Symbolism & Art Nouveau
-      'Klimt', 'Munch', 'Moreau', 'Mucha', 'Redon', 'Böcklin',
-      // Early Modern
+      // Symbolism & Art Nouveau（明るい系）
+      'Klimt', 'Mucha', 'Redon',
+      // Early Modern（明るい系）
       'Matisse', 'Picasso', 'Kandinsky', 'Klee', 'Mondrian',
-      'Modigliani', 'Schiele', 'Kirchner', 'Chagall', 'Beckmann',
-      'Léger', 'De Chirico', 'Ernst', 'Magritte',
+      'Modigliani', 'Chagall', 'Léger', 'Bonnard', 'Vuillard',
       // American
       'Sargent', 'Hopper', 'Homer', 'Whistler', 'Eakins',
       'Chase', 'Wood', 'Rockwell',
@@ -703,6 +724,16 @@
       'Utamaro': '喜多川歌麿',
       'Kitagawa Utamaro': '喜多川歌麿',
       'Ogata Korin': '尾形光琳',
+      'Caillebotte': 'ギュスターヴ・カイユボット',
+      'Gustave Caillebotte': 'ギュスターヴ・カイユボット',
+      'Boudin': 'ウジェーヌ・ブーダン',
+      'Eugène Boudin': 'ウジェーヌ・ブーダン',
+      'Tissot': 'ジェームズ・ティソ',
+      'James Tissot': 'ジェームズ・ティソ',
+      'Bonnard': 'ピエール・ボナール',
+      'Pierre Bonnard': 'ピエール・ボナール',
+      'Vuillard': 'エドゥアール・ヴュイヤール',
+      'Édouard Vuillard': 'エドゥアール・ヴュイヤール',
     };
 
     // ---- translation ----
