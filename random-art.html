@@ -365,13 +365,8 @@
 
   <div class="tabs-wrap">
     <div class="tabs" id="tabs">
-      <button class="tab masterpiece active" data-mode="masterpiece">名作</button>
+      <button class="tab masterpiece active" data-mode="masterpiece">アート</button>
       <button class="tab nature" data-mode="nature">自然</button>
-      <button class="tab" data-mode="all">すべてランダム</button>
-      <button class="tab" data-mode="wikimedia">Wikimedia</button>
-      <button class="tab" data-mode="aic">シカゴ美術館</button>
-      <button class="tab" data-mode="met">メトロポリタン美術館</button>
-      <button class="tab" data-mode="cleveland">クリーブランド美術館</button>
     </div>
   </div>
 
@@ -1090,19 +1085,11 @@
 
       try {
         let work;
-        if (selectedMode === 'masterpiece') {
+        if (selectedMode === 'nature') {
+          work = await fetchNature();
+        } else {
           work = await fetchMasterpiece();
-        } else if (selectedMode === 'all') {
-          const pick = ['aic', 'met', 'cleveland', 'wikimedia'][Math.floor(Math.random() * 4)];
-          if (pick === 'aic') work = await fetchAIC();
-          else if (pick === 'met') work = await fetchMet();
-          else if (pick === 'wikimedia') work = await fetchWikimedia();
-          else work = await fetchCleveland();
-        } else if (selectedMode === 'nature') work = await fetchNature();
-        else if (selectedMode === 'wikimedia') work = await fetchWikimedia();
-        else if (selectedMode === 'aic') work = await fetchAIC();
-        else if (selectedMode === 'met') work = await fetchMet();
-        else work = await fetchCleveland();
+        }
 
         await new Promise((resolve, reject) => {
           artImg.onload = resolve;
