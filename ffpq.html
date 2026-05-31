@@ -453,6 +453,12 @@
     }
     .btn-retry:hover { background: var(--primary-light); }
 
+    .sub-avg-note {
+      font-size: 0.7rem;
+      color: #9ca3af;
+      margin-top: 3px;
+    }
+
     /* ── Combination Cards ── */
     .combo-section { margin-top: 28px; }
     .combo-section-title {
@@ -933,6 +939,9 @@ function showResults() {
     const pct   = ((score - 10) / 40) * 100;
     const avgPct = ((f.avg - 10) / 40) * 100;
 
+    const subAvg    = f.avg / 5;
+    const subAvgPct = Math.max(0, Math.min(100, ((subAvg - 2) / 8) * 100));
+
     const subHTML = [1, 2, 3, 4, 5].map(n => {
       const sk   = key + n;
       const ss   = sScores[sk] || 0;
@@ -943,9 +952,11 @@ function showResults() {
             <div class="sub-name">${SUB_NAMES[sk]}</div>
             <div class="sub-score" style="color:${f.color}">${ss}<span class="sub-denom"> / 10</span></div>
           </div>
-          <div class="sub-bar">
+          <div class="sub-bar" style="overflow:visible;position:relative">
             <div class="sub-bar-fill" style="width:${sPct}%;background:${f.color}"></div>
+            <div style="position:absolute;top:-3px;bottom:-3px;left:${subAvgPct}%;width:2px;background:#9ca3af;border-radius:1px"></div>
           </div>
+          <div class="sub-avg-note">日本人平均：${subAvg.toFixed(1)}</div>
           <div class="sub-desc">${SUB_DESCS[sk]}</div>
         </div>`;
     }).join('');
