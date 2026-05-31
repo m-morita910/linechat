@@ -1023,69 +1023,65 @@
 
     // ---- Nature ----
     const NATURE_THEMES = [
-      // 海・湖・川
+      // 青い海・ビーチ
       'turquoise ocean coastal landscape photograph',
-      'waterfall sunlight landscape photograph',
-      'tropical beach sunny landscape photograph',
-      'mountain lake reflection sunny landscape photograph',
-      'river valley sunny landscape photograph',
-      'fjord sunny landscape photograph',
-      'coastal cliffs ocean landscape photograph',
+      'tropical beach blue water landscape photograph',
       'sea cove turquoise water landscape photograph',
-      'lakeside mountains landscape photograph',
-      'river canyon landscape photograph',
-      // 花・草原
-      'lavender field sunny landscape photograph',
-      'cherry blossom landscape photograph',
-      'tulip field colorful landscape photograph',
-      'sunflower field landscape photograph',
-      'wildflower meadow colorful landscape photograph',
-      'poppy field landscape photograph',
-      'spring blossom orchard landscape photograph',
-      'alpine meadow flowers landscape photograph',
-      'vineyard autumn landscape photograph',
-      'spring countryside green hills landscape photograph',
-      // 山・高原
-      'snow mountain sunny blue sky landscape photograph',
-      'mountain sunset golden hour landscape photograph',
-      'glacier sunny landscape photograph',
-      'rice terraces green landscape photograph',
-      'mountain valley spring landscape photograph',
-      'rocky mountain panorama landscape photograph',
-      'mountain stream waterfall landscape photograph',
-      'rolling green hills landscape photograph',
-      // 森
-      'bamboo forest green landscape photograph',
-      'forest sunlight rays landscape photograph',
-      'autumn colorful forest landscape photograph',
-      'forest waterfall landscape photograph',
-      // 砂漠・大地
-      'sand dunes golden landscape photograph',
-      'sandstone arch sunny landscape photograph',
-      'canyon sunny landscape photograph',
-      'salt flat reflection landscape photograph',
-      // その他
-      'rainbow over landscape photograph',
-      'wheat field golden sunset landscape photograph',
-      'iceberg blue ocean landscape photograph',
-      'coastal sunset colorful landscape photograph',
-      'dramatic sunset sky clouds landscape photograph',
-      'green valley spring landscape photograph',
-      // 南国・熱帯
-      'tropical island palm trees beach landscape photograph',
-      'tropical rainforest waterfall landscape photograph',
-      'bali rice terraces tropical landscape photograph',
+      'coastal cliffs blue ocean landscape photograph',
+      'mediterranean blue sea cliffs landscape photograph',
+      'caribbean beach turquoise water landscape photograph',
+      'maldives overwater blue ocean landscape photograph',
       'south pacific island turquoise lagoon landscape photograph',
+      'tropical island palm trees blue water landscape photograph',
+      'polynesian island blue lagoon landscape photograph',
+      'coral reef blue water aerial landscape photograph',
+      'scandinavia fjord blue water landscape photograph',
+      // 湖・川・滝
+      'mountain lake blue reflection landscape photograph',
+      'fjord blue green water landscape photograph',
+      'lakeside mountains blue water landscape photograph',
+      'waterfall blue green pool landscape photograph',
+      'river green valley landscape photograph',
+      'tropical waterfall green pool landscape photograph',
+      'blue lagoon waterfall landscape photograph',
+      'glacier blue lake landscape photograph',
+      'new zealand lake blue green landscape photograph',
+      'patagonia blue lake landscape photograph',
+      'mountain lake turquoise green landscape photograph',
+      'mountain stream waterfall green landscape photograph',
+      // 緑の森・草原
+      'forest sunlight green rays landscape photograph',
+      'bamboo forest green landscape photograph',
+      'tropical rainforest green waterfall landscape photograph',
+      'forest waterfall green landscape photograph',
+      'rolling green hills spring landscape photograph',
+      'green valley spring landscape photograph',
+      'alpine meadow green flowers landscape photograph',
+      'spring countryside green hills landscape photograph',
+      'ireland green hills landscape photograph',
+      'new zealand green hills landscape photograph',
+      'scottish highland green landscape photograph',
+      'spring forest green sunlight landscape photograph',
+      // 田園・棚田
+      'rice terraces green tropical landscape photograph',
+      'bali rice terraces green landscape photograph',
+      'mountain valley spring green landscape photograph',
+      // 山・高原（青空・緑）
+      'snow mountain blue sky landscape photograph',
+      'glacier blue ice mountain landscape photograph',
+      'mountain panorama blue sky green valley landscape photograph',
+      'rocky mountain blue sky landscape photograph',
+      'swiss alps green meadow blue sky landscape photograph',
+      'norway mountain green fjord landscape photograph',
+      // 南国・熱帯（青緑）
       'tropical jungle green landscape photograph',
-      'caribbean beach sunny landscape photograph',
-      'maldives overwater turquoise ocean landscape photograph',
-      'hawaii volcanic landscape photograph',
-      'tropical coastline sunset landscape photograph',
-      'polynesian island landscape photograph',
+      'hawaii green tropical landscape photograph',
+      'tropical coastline blue ocean landscape photograph',
+      'tropical beach blue green water landscape photograph',
     ];
 
-    const NATURE_EXCLUDE = '-diagram -chart -microform -document -map -icon -logo -symbol -graph -test -evaluation -target -form -scan -index -catalog -animal -bird -fish -insect -deer -bear -wolf -elephant -lion -tiger -snake -frog -butterfly -people -person -portrait -crowd';
-    const NATURE_BAD = /microform|diagram|chart|document|\.svg$|test.target|evaluation|icon|logo|symbol|\.pdf$|index|catalog|form\b|map\b|\bbird\b|\bfish\b|\binsect\b|\banimal\b|\bbear\b|\bdeer\b|\belephant\b|\blion\b|\btiger\b|\bbutterfly\b/i;
+    const NATURE_EXCLUDE = '-diagram -chart -microform -document -map -icon -logo -symbol -graph -test -evaluation -target -form -scan -index -catalog -animal -bird -fish -insect -deer -bear -wolf -elephant -lion -tiger -snake -frog -butterfly -people -person -portrait -crowd -desert -sand_dune -autumn -sunset -golden_hour';
+    const NATURE_BAD = /microform|diagram|chart|document|\.svg$|test.target|evaluation|icon|logo|symbol|\.pdf$|index|catalog|form\b|map\b|\bbird\b|\bfish\b|\binsect\b|\banimal\b|\bbear\b|\bdeer\b|\belephant\b|\blion\b|\btiger\b|\bbutterfly\b|sand.?dune|desert\b|autumn.leaves|fall.colors/i;
 
     async function fetchNature() {
       const theme = NATURE_THEMES[Math.floor(Math.random() * NATURE_THEMES.length)];
