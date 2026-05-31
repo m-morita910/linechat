@@ -1022,94 +1022,34 @@
     }
 
     // ---- Nature ----
-    const NATURE_THEMES = [
-      // 青い海・ビーチ
-      'turquoise ocean coastal landscape photograph',
-      'tropical beach blue water landscape photograph',
-      'sea cove turquoise water landscape photograph',
-      'coastal cliffs blue ocean landscape photograph',
-      'mediterranean blue sea cliffs landscape photograph',
-      'caribbean beach turquoise water landscape photograph',
-      'maldives overwater blue ocean landscape photograph',
-      'south pacific island turquoise lagoon landscape photograph',
-      'tropical island palm trees blue water landscape photograph',
-      'polynesian island blue lagoon landscape photograph',
-      'coral reef blue water aerial landscape photograph',
-      'scandinavia fjord blue water landscape photograph',
-      // 湖・川・滝
-      'mountain lake blue reflection landscape photograph',
-      'fjord blue green water landscape photograph',
-      'lakeside mountains blue water landscape photograph',
-      'waterfall blue green pool landscape photograph',
-      'river green valley landscape photograph',
-      'tropical waterfall green pool landscape photograph',
-      'blue lagoon waterfall landscape photograph',
-      'glacier blue lake landscape photograph',
-      'new zealand lake blue green landscape photograph',
-      'patagonia blue lake landscape photograph',
-      'mountain lake turquoise green landscape photograph',
-      'mountain stream waterfall green landscape photograph',
-      // 緑の森・草原
-      'forest sunlight green rays landscape photograph',
-      'bamboo forest green landscape photograph',
-      'tropical rainforest green waterfall landscape photograph',
-      'forest waterfall green landscape photograph',
-      'rolling green hills spring landscape photograph',
-      'green valley spring landscape photograph',
-      'alpine meadow green flowers landscape photograph',
-      'spring countryside green hills landscape photograph',
-      'ireland green hills landscape photograph',
-      'new zealand green hills landscape photograph',
-      'scottish highland green landscape photograph',
-      'spring forest green sunlight landscape photograph',
-      // 田園・棚田
-      'rice terraces green tropical landscape photograph',
-      'bali rice terraces green landscape photograph',
-      'mountain valley spring green landscape photograph',
-      // 山・高原（青空・緑）
-      'snow mountain blue sky landscape photograph',
-      'glacier blue ice mountain landscape photograph',
-      'mountain panorama blue sky green valley landscape photograph',
-      'rocky mountain blue sky landscape photograph',
-      'swiss alps green meadow blue sky landscape photograph',
-      'norway mountain green fjord landscape photograph',
-      // 南国・熱帯（青緑）
-      'tropical jungle green landscape photograph',
-      'hawaii green tropical landscape photograph',
-      'tropical coastline blue ocean landscape photograph',
-      'tropical beach blue green water landscape photograph',
+    // Wikimedia Commons categories — no search query needed, always has files
+    const NATURE_CATEGORIES = [
+      'Seascapes', 'Beaches', 'Tropical beaches', 'Lagoons', 'Blue lagoons',
+      'Fjords', 'Coral reefs',
+      'Waterfalls', 'Mountain lakes', 'Lakes', 'Rivers', 'Glacial lakes', 'Ponds',
+      'Forests', 'Rainforests', 'Tropical forests', 'Bamboo forests', 'Mangroves',
+      'Meadows', 'Alpine meadows',
+      'Glaciers', 'Mountains',
+      'Rice terraces', 'Islands', 'Tropical islands',
     ];
 
-    const NATURE_EXCLUDE = '-diagram -chart -microform -document -map -icon -logo -symbol -graph -test -evaluation -target -form -scan -index -catalog -animal -bird -fish -insect -deer -bear -wolf -elephant -lion -tiger -snake -frog -butterfly -people -person -portrait -crowd -desert -sand_dune -autumn -sunset -golden_hour';
-    const NATURE_BAD = /microform|diagram|chart|document|\.svg$|test.target|evaluation|icon|logo|symbol|\.pdf$|index|catalog|form\b|map\b|\bbird\b|\bfish\b|\binsect\b|\banimal\b|\bbear\b|\bdeer\b|\belephant\b|\blion\b|\btiger\b|\bbutterfly\b|sand.?dune|desert\b|autumn.leaves|fall.colors/i;
+    const NATURE_BAD = /diagram|chart|document|\.svg$|icon|logo|symbol|\.pdf$|\bbird\b|\bfish\b|\binsect\b|\banimal\b|\bbear\b|\bdeer\b|\belephant\b|\blion\b|\btiger\b|\bbutterfly\b/i;
 
     async function fetchNature() {
       for (let t = 0; t < 3; t++) {
         try {
-          const theme = NATURE_THEMES[Math.floor(Math.random() * NATURE_THEMES.length)];
-          const offset = Math.floor(Math.random() * 50);
-          const query = `${theme} ${NATURE_EXCLUDE}`;
-          const searchRes = await fetch(
-            `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srnamespace=6&srlimit=50&sroffset=${offset}&format=json&origin=*`
+          const category = NATURE_CATEGORIES[Math.floor(Math.random() * NATURE_CATEGORIES.length)];
+          const dir = Math.random() < 0.5 ? 'asc' : 'desc';
+          const res = await fetch(
+            `https://commons.wikimedia.org/w/api.php?action=query&list=categorymembers&cmtitle=${encodeURIComponent('Category:' + category)}&cmtype=file&cmlimit=50&cmnamespace=6&cmsort=timestamp&cmdir=${dir}&format=json&origin=*`
           );
-          if (!searchRes.ok) continue;
-          const searchData = await searchRes.json();
-          let results = searchData.query?.search || [];
-          if (!results.length) {
-            const fallbackRes = await fetch(
-              `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srnamespace=6&srlimit=50&format=json&origin=*`
-            );
-            const fallbackData = await fallbackRes.json();
-            results = fallbackData.query?.search || [];
-          }
-          if (!results.length) continue;
-          // 写真ファイルのみ・非自然コンテンツを除外
-          const imageResults = results.filter(r =>
-            /\.(jpg|jpeg|png|webp)$/i.test(r.title) && !NATURE_BAD.test(r.title) && !NATURE_BAD.test(r.snippet || '')
+          if (!res.ok) continue;
+          const data = await res.json();
+          const files = (data.query?.categorymembers || []).filter(f =>
+            /\.(jpg|jpeg|png|webp)$/i.test(f.title) && !NATURE_BAD.test(f.title)
           );
-          const pool = imageResults.length ? imageResults : results.filter(r => /\.(jpg|jpeg|png|webp)$/i.test(r.title));
-          if (!pool.length) continue;
-          const chosen = pool[Math.floor(Math.random() * pool.length)];
+          if (!files.length) continue;
+          const chosen = files[Math.floor(Math.random() * files.length)];
 
           const infoRes = await fetch(
             `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(chosen.title)}&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=1200&format=json&origin=*`
@@ -1130,7 +1070,7 @@
             title: rawTitle,
             artist: photographer,
             date: stripHtml(rawDate),
-            medium: description.slice(0, 80) || theme.replace(' photograph', ''),
+            medium: description.slice(0, 80) || category,
             imageUrl: info.thumburl || info.url,
             detailUrl: `https://commons.wikimedia.org/wiki/${encodeURIComponent(chosen.title)}`,
             museum: '自然写真 / Wikimedia Commons'
