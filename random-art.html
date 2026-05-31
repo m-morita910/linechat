@@ -364,6 +364,12 @@
         <a class="wiki-desc-link" id="wikiDescLink" href="#" target="_blank" rel="noopener">Wikipedia で読む →</a>
       </div>
 
+      <div class="wiki-desc hidden" id="wikiArtistDesc">
+        <div class="wiki-desc-label">作者について</div>
+        <div class="wiki-desc-text" id="wikiArtistDescText"></div>
+        <a class="wiki-desc-link" id="wikiArtistDescLink" href="#" target="_blank" rel="noopener">Wikipedia で読む →</a>
+      </div>
+
       <a class="art-link" id="artLink" href="#" target="_blank" rel="noopener">詳細を見る →</a>
     </div>
 
@@ -517,93 +523,88 @@
       };
     }
 
-    // ---- Wikipedia description ----
-    async function fetchWikipediaDesc(title, artist) {
+    // ---- Wikipedia descriptions (artwork + artist bio in parallel) ----
+    async function fetchWikipediaDescs(title, artist) {
       const artistName = parseArtistField(artist).name;
       const artistLastName = artistName.split(/[\s,]+/).filter(s => s.length > 2).pop() || '';
 
-      // Check that the fetched article text actually mentions the artist
       function textMentionsArtist(text) {
         if (!artistLastName) return true;
         return text.toLowerCase().slice(0, 700).includes(artistLastName.toLowerCase());
       }
 
-      // Check search result title/snippet mentions relevant terms
       function isRelevant(result, ...terms) {
         const hay = (result.title + ' ' + (result.snippet || '')).toLowerCase();
         return terms.some(t => t && t.length > 2 && hay.includes(t.toLowerCase()));
       }
 
-      async function fetchExtractJa(pageTitle) {
+      async function fetchExtract(lang, pageTitle, sentences = 5) {
         const res = await fetch(
-          `https://ja.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&exsentences=5&titles=${encodeURIComponent(pageTitle)}&format=json&origin=*`
+          `https://${lang}.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&exsentences=${sentences}&titles=${encodeURIComponent(pageTitle)}&format=json&origin=*`
         );
         const data = await res.json();
         const page = Object.values(data.query?.pages || {})[0];
         return page?.extract?.replace(/<[^>]*>/g, '').replace(/\n+/g, ' ').trim() || '';
       }
 
-      async function fetchExtractEn(pageTitle) {
+      async function searchWiki(lang, query, limit = 3) {
         const res = await fetch(
-          `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&exsentences=4&titles=${encodeURIComponent(pageTitle)}&format=json&origin=*`
+          `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=${limit}&format=json&origin=*`
         );
         const data = await res.json();
-        const page = Object.values(data.query?.pages || {})[0];
-        return page?.extract?.replace(/<[^>]*>/g, '').replace(/\n+/g, ' ').trim() || '';
+        return data.query?.search || [];
       }
 
-      // Step 1: Japanese Wikipedia — artwork article (must mention artist in text)
-      if (title && artistLastName) {
-        try {
-          const q = `${title} ${artistLastName}`.trim();
-          const res = await fetch(`https://ja.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&srlimit=3&format=json&origin=*`);
-          const data = await res.json();
-          const results = data.query?.search || [];
-          const hit = results.find(r => isRelevant(r, title, artistLastName));
-          if (hit) {
-            const text = await fetchExtractJa(hit.title);
-            if (text.length > 60 && textMentionsArtist(text)) {
-              return { text, url: `https://ja.wikipedia.org/wiki/${encodeURIComponent(hit.title)}`, label: 'Wikipedia 解説' };
-            }
+      // --- Artwork search ---
+      async function findArtwork() {
+        if (!title || !artistLastName) return null;
+        const q = `${title} ${artistLastName}`;
+        // JA first
+        const jaHit = (await searchWiki('ja', q)).find(r => isRelevant(r, title, artistLastName));
+        if (jaHit) {
+          const text = await fetchExtract('ja', jaHit.title);
+          if (text.length > 60 && textMentionsArtist(text))
+            return { text, url: `https://ja.wikipedia.org/wiki/${encodeURIComponent(jaHit.title)}` };
+        }
+        // EN fallback
+        const enHit = (await searchWiki('en', q)).find(r => isRelevant(r, title, artistLastName));
+        if (enHit) {
+          const text = await fetchExtract('en', enHit.title, 4);
+          if (text.length > 60 && textMentionsArtist(text)) {
+            const translated = await translateToJa(text.slice(0, 400));
+            return { text: translated || text, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(enHit.title)}` };
           }
-        } catch (_) {}
+        }
+        return null;
       }
 
-      // Step 2: Japanese Wikipedia — artist bio (title must contain artist's last name)
-      if (artistName) {
-        try {
-          const res = await fetch(`https://ja.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(artistName)}&srlimit=3&format=json&origin=*`);
-          const data = await res.json();
-          const results = data.query?.search || [];
-          const hit = results.find(r => r.title.toLowerCase().includes(artistLastName.toLowerCase()));
-          if (hit) {
-            const text = await fetchExtractJa(hit.title);
-            if (text.length > 60) {
-              return { text, url: `https://ja.wikipedia.org/wiki/${encodeURIComponent(hit.title)}`, label: `作者について` };
-            }
+      // --- Artist bio search ---
+      async function findArtistBio() {
+        if (!artistName) return null;
+        // JA: search by name, take top result (Japanese titles are katakana so don't check Latin)
+        const jaResults = await searchWiki('ja', artistName);
+        if (jaResults.length > 0) {
+          const text = await fetchExtract('ja', jaResults[0].title);
+          if (text.length > 60) return { text, url: `https://ja.wikipedia.org/wiki/${encodeURIComponent(jaResults[0].title)}` };
+        }
+        // EN fallback
+        const enResults = await searchWiki('en', artistName);
+        const enHit = enResults.find(r => r.title.toLowerCase().includes(artistLastName.toLowerCase())) || enResults[0];
+        if (enHit) {
+          const text = await fetchExtract('en', enHit.title);
+          if (text.length > 60) {
+            const translated = await translateToJa(text.slice(0, 400));
+            return { text: translated || text, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(enHit.title)}` };
           }
-        } catch (_) {}
+        }
+        return null;
       }
 
-      // Step 3: English Wikipedia — artwork article (must mention artist in text)
-      if (title && artistLastName) {
-        try {
-          const q = `${title} ${artistLastName}`.trim();
-          const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&srlimit=3&format=json&origin=*`);
-          const data = await res.json();
-          const results = data.query?.search || [];
-          const hit = results.find(r => isRelevant(r, title, artistLastName));
-          if (hit) {
-            const text = await fetchExtractEn(hit.title);
-            if (text.length > 60 && textMentionsArtist(text)) {
-              const translated = await translateToJa(text.slice(0, 400));
-              return { text: translated || text, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(hit.title)}`, label: 'Wikipedia 解説' };
-            }
-          }
-        } catch (_) {}
-      }
-
-      return null;
+      const [artworkRes, artistRes] = await Promise.allSettled([findArtwork(), findArtistBio()]);
+      return {
+        artwork: artworkRes.status === 'fulfilled' ? artworkRes.value : null,
+        artistBio: artistRes.status === 'fulfilled' ? artistRes.value : null
+      };
     }
 
     // ---- tab selection ----
@@ -785,6 +786,7 @@
       artImg.classList.remove('loaded');
       info.classList.add('hidden');
       document.getElementById('wikiDesc').classList.add('hidden');
+      document.getElementById('wikiArtistDesc').classList.add('hidden');
 
       try {
         let work;
@@ -838,11 +840,11 @@
         document.getElementById('counter').textContent = `${count} 点の作品を表示しました`;
 
         // Translate & fetch Wikipedia in background
-        const [titleJa, mediumJa, artistResult, wikiResult] = await Promise.all([
+        const [titleJa, mediumJa, artistResult, wikiResults] = await Promise.all([
           translateToJa(work.title),
           translateToJa(work.medium),
           translateArtistToJa(work.artist),
-          fetchWikipediaDesc(work.title, work.artist)
+          fetchWikipediaDescs(work.title, work.artist)
         ]);
 
         titleJaEl.textContent = titleJa || work.title || '（無題）';
@@ -855,13 +857,17 @@
         if (artistResult.orig) artistEl.textContent += `（${artistResult.orig}）`;
         if (artistResult.extra) document.getElementById('artArtistExtra').textContent = artistResult.extra;
 
-        // Wikipedia description
-        const wikiDescEl = document.getElementById('wikiDesc');
-        if (wikiResult) {
-          wikiDescEl.querySelector('.wiki-desc-label').textContent = wikiResult.label || 'Wikipedia 解説';
-          document.getElementById('wikiDescText').textContent = wikiResult.text;
-          document.getElementById('wikiDescLink').href = wikiResult.url;
-          wikiDescEl.classList.remove('hidden');
+        // Wikipedia — artwork
+        if (wikiResults.artwork) {
+          document.getElementById('wikiDescText').textContent = wikiResults.artwork.text;
+          document.getElementById('wikiDescLink').href = wikiResults.artwork.url;
+          document.getElementById('wikiDesc').classList.remove('hidden');
+        }
+        // Wikipedia — artist bio
+        if (wikiResults.artistBio) {
+          document.getElementById('wikiArtistDescText').textContent = wikiResults.artistBio.text;
+          document.getElementById('wikiArtistDescLink').href = wikiResults.artistBio.url;
+          document.getElementById('wikiArtistDesc').classList.remove('hidden');
         }
 
       } catch (e) {
