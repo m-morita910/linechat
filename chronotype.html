@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>クロノタイプ診断</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent-bg: #eff6ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 16px;
+    }
+    .wrap { max-width: 520px; margin: 0 auto; }
+    h1 { font-size: 1.3rem; text-align: center; margin: 16px 0 4px; }
+    .sub { text-align: center; color: var(--muted); font-size: 0.85rem; margin: 0 0 20px; }
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
+    }
+    .part-label {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      background: var(--accent-bg);
+      border-radius: 999px;
+      padding: 3px 10px;
+      margin-bottom: 10px;
+    }
+    .progress {
+      height: 6px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    .progress .bar {
+      height: 100%;
+      width: 0%;
+      background: var(--primary);
+      border-radius: 999px;
+      transition: width .2s;
+    }
+    .counter { font-size: 0.78rem; color: var(--muted); text-align: center; margin-bottom: 14px; }
+    .question { font-size: 1.05rem; font-weight: 600; margin: 0 0 16px; }
+    .choices { display: flex; flex-direction: column; gap: 10px; }
+    .choice {
+      display: block;
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-family: inherit;
+      line-height: 1.5;
+      padding: 14px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+    }
+    .choice:hover { border-color: var(--primary); }
+    .choice.selected {
+      border-color: var(--primary);
+      background: var(--accent-bg);
+      font-weight: 600;
+    }
+    .note { font-size: 0.75rem; color: var(--muted); margin: 10px 2px 0; }
+    .nav { display: flex; gap: 10px; margin-top: 18px; }
+    .btn {
+      flex: 1;
+      border: none;
+      border-radius: 10px;
+      padding: 13px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn.primary { background: var(--primary); color: #fff; }
+    .btn.primary:hover { background: var(--primary-dark); }
+    .btn.primary:disabled { background: #cbd5e1; cursor: not-allowed; }
+    .btn.ghost { background: #f3f4f6; color: var(--text); }
+    .btn.ghost:hover { background: #e5e7eb; }
+
+    /* 結果 */
+    .result-head { text-align: center; }
+    .result-emoji { font-size: 3.2rem; line-height: 1.2; }
+    .result-type { font-size: 1.8rem; font-weight: 700; color: var(--primary-dark); margin: 4px 0 2px; }
+    .result-catch { font-size: 0.9rem; color: var(--muted); margin: 0 0 16px; }
+    .result-desc { font-size: 0.92rem; margin: 0 0 16px; }
+    .score-box {
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 0.85rem;
+    }
+    .score-row { display: flex; justify-content: space-between; padding: 4px 0; }
+    .score-row + .score-row { border-top: 1px dashed var(--border); }
+    .score-row .v { font-weight: 700; }
+    .scale { margin-top: 14px; font-size: 0.78rem; color: var(--muted); line-height: 1.9; }
+    .scale .hit { color: var(--primary-dark); font-weight: 700; }
+    .answers { margin-top: 16px; }
+    .answers summary { font-size: 0.85rem; cursor: pointer; color: var(--primary-dark); font-weight: 600; }
+    .answers ol { padding-left: 1.3em; margin: 10px 0 0; }
+    .answers li { font-size: 0.8rem; color: var(--muted); margin-bottom: 6px; }
+    .answers .a { color: var(--text); }
+    footer { text-align: center; color: var(--muted); font-size: 0.75rem; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>クロノタイプ診断</h1>
+    <p class="sub">全30問。あなたの体内時計のタイプを判定します</p>
+
+    <div class="card" id="quizCard">
+      <span class="part-label" id="partLabel">パート1</span>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div class="counter" id="counter"></div>
+      <p class="question" id="question"></p>
+      <div class="choices" id="choices"></div>
+      <p class="note" id="note" hidden></p>
+      <div class="nav">
+        <button class="btn ghost" id="prevBtn" type="button">戻る</button>
+        <button class="btn primary" id="nextBtn" type="button">次へ</button>
+      </div>
+    </div>
+
+    <div class="card" id="resultCard" hidden></div>
+
+    <footer>※ 本診断は一般的なクロノタイプ分類に基づく簡易判定です。医学的診断ではありません。</footer>
+  </div>
+
+  <script>
+    // パート1：当てはまるものを「はい」としてカウント（7つ以上でイルカ型）
+    const PART1 = [
+      'ちょっとした音や光でも目が覚めて眠れなくなる',
+      '食事にあんまり興味がない',
+      'だいたい目覚まし時計が鳴る前に起きる',
+      '飛行機に乗ると、アイマスクや耳栓をしても眠れない',
+      'ときどき疲労感でイライラしてしまう',
+      '小さなことでやたらと不安になってしまう',
+      '不眠症と診断を受けたか、自己判断で不眠症だと感じる',
+      '学生だったころは、いつも成績のことが不安だった',
+      '過去や未来のことを考え、眠れないことがよくある',
+      '自分を完璧主義者だと思う'
+    ];
+
+    // パート2：選択肢の後ろの点数を合計（20〜32:ライオン / 33〜47:クマ / 48〜60:オオカミ）
+    const PART2 = [
+      { q: '次の日になにも予定がなくて何時に起きてもかまわないとしたら、あなたは何時に起きますか？',
+        a: ['6:30より前', '6:30〜8:45のあいだ', '8:45より後'] },
+      { q: '特定の時間に起きなければならないとしたら、あなたは目覚まし時計を使いますか？',
+        a: ['目覚まし時計は使わず、起きたいと思った時間に起きることができる',
+            '目覚まし時計は使うが、スヌーズ機能は必要ない',
+            '目覚まし時計を使うし、スヌーズ機能は必須。できればアラームを2〜3個はセットしたい'] },
+      { q: '週末は何時に起きますか？',
+        a: ['平日と同じ', '平日より45〜89分ほど遅い', '平日より90分以上遅い'] },
+      { q: 'あなたにとって時差ボケはどのような感覚ですか？',
+        a: ['いつまでたっても時差ボケが治らない', '48時間もあれば改善する', 'たいていすぐに改善する'] },
+      { q: '一日で一番好きな食事の時間は？',
+        a: ['朝食', '昼食', '夕食'] },
+      { q: 'もし学生時代にもどってセンター試験を受けねばならないとしたら、テストの開始時間はいつがいいですか？',
+        a: ['朝', '昼すぎ', '15〜16時ごろ'] },
+      { q: '激しい運動をしなければならないとしたら、何時ごろを選びますか？',
+        a: ['8:00前', '8:00〜16:00のあいだ', '16:00よりもあと'] },
+      { q: '一日のうちもっとも集中できるのはいつ？',
+        a: ['起きてから1〜2時間後', '起きてから2〜4時間後', '起きてから4〜6時間後'],
+        note: '※ 3つ目の選択肢は原典の記載が確認できなかったため、流れに沿った内容を補っています。' },
+      { q: '一日の労働時間が5時間だけだとしたら、どの時間帯に働きたいですか？',
+        a: ['4:00〜9:00', '9:00〜14:00', '16:00〜21:00'] },
+      { q: '自分の思考タイプは、以下のどれに当てはまると思いますか？',
+        a: ['分析と論理的な思考がうまい', '論理と直感をあわせ持つバランス型', '直感と創造的な思考がうまい'] },
+      { q: '昼寝をしますか？するとどうなりますか？',
+        a: ['まったくしない', '仕事がないときにときどきする', '昼寝をすると夜まで元気でいられる'] },
+      { q: '激しい肉体労働を2時間しなければならないとしたら（重い家具の移動など）、もっとも効率的に動ける時間帯はいつだと思いますか？',
+        a: ['8:00〜10:00', '11:00〜13:00', '18:00〜20:00'] },
+      { q: 'あなたの健康意識は、以下のどれに当てはまると思いますか？',
+        a: ['いつも健康的な食事や運動を実践している', 'ときどき健康的な食事や運動を実践している', '健康的な食事や運動を実践するのは難しい'] },
+      { q: 'リスクを取ることに対して、どれぐらい不安になりますか？',
+        a: ['不安はあまりない', 'まあまあ不安がある', 'かなりの不安がある'] },
+      { q: 'あなたは以下のどのタイプですか？',
+        a: ['未来志向で、明確な目標と大きなプランを持っている',
+            '過去に学び、未来に希望を持ち、現在を生きる情熱を大事にしている',
+            'つねに現在志向で、いまの幸福を大事にしている'] },
+      { q: '学生時代、あなたはどんなタイプでしたか？',
+        a: ['人気者', '真面目', '怠け者'] },
+      { q: '朝起きたらどのような状態ですか？',
+        a: ['起きてすぐシャキシャキ行動できる', 'ボーっとするが寝床から出られないほどではない', '完全にフラフラで目を開くのも一苦労'] },
+      { q: '起きて30分後の食欲はどのような状態ですか？',
+        a: ['かなりの空腹', 'やや空腹', 'まったく腹が減らない'] },
+      { q: '夜眠れないことがどれぐらいありますか？',
+        a: ['ほとんどない。海外旅行で時差ボケしたときぐらい', 'あまりないが、ストレスが強いときには眠れなくなる', '慢性的に不眠'] },
+      { q: '人生の満足度はどれぐらいですか？',
+        a: ['高い', '普通に良い', '低い'] }
+    ];
+
+    const TYPES = {
+      dolphin: { emoji: '🐬', name: 'イルカ型', catch: '眠りが浅く、神経が細やかな不眠タイプ',
+        desc: '物音や光に敏感で、寝つきが悪かったり夜中に目が覚めたりしがち。完璧主義で不安を感じやすい一方、細部への注意力と知性の高さが持ち味です。夕方〜夜に調子が上がりやすいため、就寝前の刺激を減らし、起床・就寝時刻を一定に保つことが特に効果的です。' },
+      lion:    { emoji: '🦁', name: 'ライオン（朝）型', catch: '早起きが得意な朝型リーダータイプ',
+        desc: '目覚まし時計なしで早起きでき、午前中に最高のパフォーマンスを発揮します。実務的で楽観的、目標志向。反面、夕方以降は急速に電池が切れるため、重要な仕事は午前に集中させ、夜の予定は控えめに組むのが得策です。' },
+      bear:    { emoji: '🐻', name: 'クマ（昼）型',   catch: '太陽のリズムに沿った最多数派タイプ',
+        desc: '人口の半数以上を占めるタイプ。日の出・日の入りに近いリズムで動き、午前中〜昼過ぎにかけて生産性がピークになります。社交的で協調性が高い一方、睡眠負債を溜めやすいので、週末の寝だめに頼らず平日の睡眠時間を確保することが重要です。' },
+      wolf:    { emoji: '🐺', name: 'オオカミ（夜）型', catch: '夜に本領を発揮する創造的タイプ',
+        desc: '朝は苦手で、昼すぎから夜にかけて集中力と創造性が高まります。直感的でリスクを取ることを厭わない反面、社会の標準的な時間割とのズレから睡眠不足に陥りやすいタイプ。朝の光を浴びる習慣と、夜のブルーライト制限が効きます。' }
+    };
+
+    const TOTAL = PART1.length + PART2.length;
+    const answers = new Array(TOTAL).fill(null);
+    let idx = 0;
+
+    const el = {
+      quizCard: document.getElementById('quizCard'),
+      resultCard: document.getElementById('resultCard'),
+      partLabel: document.getElementById('partLabel'),
+      bar: document.getElementById('bar'),
+      counter: document.getElementById('counter'),
+      question: document.getElementById('question'),
+      choices: document.getElementById('choices'),
+      note: document.getElementById('note'),
+      prevBtn: document.getElementById('prevBtn'),
+      nextBtn: document.getElementById('nextBtn')
+    };
+
+    function isPart1(i) { return i < PART1.length; }
+
+    function currentDef(i) {
+      if (isPart1(i)) {
+        return { q: PART1[i], a: ['はい', 'いいえ'], note: null };
+      }
+      return PART2[i - PART1.length];
+    }
+
+    function render() {
+      const def = currentDef(idx);
+
+      el.partLabel.textContent = isPart1(idx) ? 'パート1' : 'パート2';
+      el.bar.style.width = ((idx) / TOTAL * 100) + '%';
+      el.counter.textContent = isPart1(idx)
+        ? 'Q' + (idx + 1) + ' / ' + TOTAL + '（パート1：' + (idx + 1) + '/' + PART1.length + '）'
+        : 'Q' + (idx + 1) + ' / ' + TOTAL + '（パート2：' + (idx - PART1.length + 1) + '/' + PART2.length + '）';
+      el.question.textContent = def.q;
+
+      el.choices.textContent = '';
+      def.a.forEach(function (text, ci) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'choice' + (answers[idx] === ci ? ' selected' : '');
+        btn.textContent = text;
+        btn.addEventListener('click', function () {
+          answers[idx] = ci;
+          if (idx < TOTAL - 1) {
+            idx++;
+            render();
+          } else {
+            render();
+          }
+        });
+        el.choices.appendChild(btn);
+      });
+
+      if (def.note) {
+        el.note.textContent = def.note;
+        el.note.hidden = false;
+      } else {
+        el.note.hidden = true;
+      }
+
+      el.prevBtn.disabled = idx === 0;
+      el.nextBtn.disabled = answers[idx] === null;
+      el.nextBtn.textContent = idx === TOTAL - 1 ? '結果を見る' : '次へ';
+    }
+
+    function judge() {
+      const yesCount = PART1.reduce(function (acc, _, i) {
+        return acc + (answers[i] === 0 ? 1 : 0);
+      }, 0);
+
+      let score = 0;
+      for (let i = PART1.length; i < TOTAL; i++) score += answers[i] + 1; // 選択肢0,1,2 → 1,2,3点
+
+      let part2Key;
+      if (score <= 32) part2Key = 'lion';
+      else if (score <= 47) part2Key = 'bear';
+      else part2Key = 'wolf';
+
+      const isDolphin = yesCount >= 7;
+      return { yesCount: yesCount, score: score, part2Key: part2Key, isDolphin: isDolphin,
+               mainKey: isDolphin ? 'dolphin' : part2Key };
+    }
+
+    function showResult() {
+      const r = judge();
+      const t = TYPES[r.mainKey];
+      const p2 = TYPES[r.part2Key];
+
+      const scaleRow = function (key, label) {
+        return '<div' + (r.part2Key === key ? ' class="hit"' : '') + '>' + label + '</div>';
+      };
+
+      let html = '';
+      html += '<div class="result-head">';
+      html += '<div class="result-emoji">' + t.emoji + '</div>';
+      html += '<div class="result-type">' + t.name + '</div>';
+      html += '<p class="result-catch">' + t.catch + '</p>';
+      html += '</div>';
+      html += '<p class="result-desc">' + t.desc + '</p>';
+
+      html += '<div class="score-box">';
+      html += '<div class="score-row"><span>パート1「はい」の数</span><span class="v">' + r.yesCount + ' / ' + PART1.length + '</span></div>';
+      html += '<div class="score-row"><span>パート2 合計点</span><span class="v">' + r.score + ' 点</span></div>';
+      html += '<div class="score-row"><span>パート2の判定</span><span class="v">' + p2.emoji + ' ' + p2.name + '</span></div>';
+      html += '</div>';
+
+      html += '<div class="scale">';
+      html += scaleRow('lion', '20〜32点：🦁 ライオン（朝）型');
+      html += scaleRow('bear', '33〜47点：🐻 クマ（昼）型');
+      html += scaleRow('wolf', '48〜60点：🐺 オオカミ（夜）型');
+      html += '<div' + (r.isDolphin ? ' class="hit"' : '') + '>パート1で「はい」7つ以上：🐬 イルカ（不眠）型</div>';
+      html += '</div>';
+
+      if (r.isDolphin) {
+        html += '<p class="note">パート1で「はい」が7つ以上のため、パート2の点数（' + p2.name + '相当）とは別に <strong>イルカ型</strong> と判定しています。</p>';
+      }
+
+      html += '<details class="answers"><summary>回答内容を確認する</summary><ol>';
+      for (let i = 0; i < TOTAL; i++) {
+        const def = currentDef(i);
+        const suffix = isPart1(i) ? '' : '（' + (answers[i] + 1) + '点）';
+        html += '<li>' + escapeHtml(def.q) + '<br><span class="a">→ ' + escapeHtml(def.a[answers[i]]) + suffix + '</span></li>';
+      }
+      html += '</ol></details>';
+
+      html += '<div class="nav"><button class="btn ghost" id="backBtn" type="button">回答を見直す</button>'
+           +  '<button class="btn primary" id="retryBtn" type="button">最初からやり直す</button></div>';
+
+      el.resultCard.innerHTML = html;
+      el.quizCard.hidden = true;
+      el.resultCard.hidden = false;
+      window.scrollTo(0, 0);
+
+      document.getElementById('backBtn').addEventListener('click', function () {
+        el.resultCard.hidden = true;
+        el.quizCard.hidden = false;
+        idx = TOTAL - 1;
+        render();
+      });
+      document.getElementById('retryBtn').addEventListener('click', function () {
+        answers.fill(null);
+        idx = 0;
+        el.resultCard.hidden = true;
+        el.quizCard.hidden = false;
+        render();
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    el.prevBtn.addEventListener('click', function () {
+      if (idx > 0) { idx--; render(); }
+    });
+
+    el.nextBtn.addEventListener('click', function () {
+      if (answers[idx] === null) return;
+      if (idx === TOTAL - 1) {
+        const unanswered = answers.indexOf(null);
+        if (unanswered !== -1) { idx = unanswered; render(); return; }
+        showResult();
+      } else {
+        idx++;
+        render();
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>
